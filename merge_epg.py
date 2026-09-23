@@ -14,7 +14,6 @@ SOURCES = [
     "https://epgshare01.online/epgshare01/epg_ripper_US_SPORTS1.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_CH1.xml.gz",
-],
 ]
 
 OUTPUT = "guide.xml.gz"
