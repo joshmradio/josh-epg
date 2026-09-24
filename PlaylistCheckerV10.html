@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist Checker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Simple, self-contained SVG favicon that should work reliably on Chrome -->
+    <link rel="icon" href="data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3e%3cpath fill='blue' d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3e%3c/svg%3e">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .scrollable-results {
+            max-height: 500px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
+        .scrollable-results::-webkit-scrollbar {
+            width: 8px;
+        }
+        .scrollable-results::-webkit-scrollbar-thumb {
+            background-color: #d1d5db;
+            border-radius: 4px;
+        }
+        .scrollable-results::-webkit-scrollbar-track {
+            background-color: #f3f4f6;
+        }
+        .scroll-indicator {
+            position: sticky;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: #9ca3af;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            padding: 4px 8px;
+            border-radius: 8px;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+            animation: bounce 2s infinite;
+            z-index: 10;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            40% {
+                transform: translateX(-50%) translateY(-5px);
+            }
+            60% {
+                transform: translateX(-50%) translateY(-2px);
+            }
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 24px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .copy-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            pointer-events: none;
+        }
+        .copy-message.show {
+            opacity: 1;
+        }
+        .filter-button {
+            transition: all 0.2s ease;
+        }
+        .filter-button.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .view-toggle {
+            transition: all 0.2s ease;
+        }
+        .view-toggle.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .xtream-code {
+            font-family: monospace;
+            background-color: #f1f5f9;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 4px;
+            border: 1px solid #e2e8f0;
+        }
+        .xtream-label {
+            font-weight: 600;
+            color: #4b5563;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="flex flex-col lg:flex-row gap-8 w-full max-w-7xl">
+        <!-- Left Panel: Input and Results -->
+        <div id="inputPanel" class="bg-white p-8 rounded-xl shadow-lg w-full lg:w-1/2">
+            <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Playlist Checker</h1>
+            <p class="text-sm text-gray-600 mb-6 text-left">
+                Paste your M3U links or Xtream data below. Paste in as many as you want at a time.
+                <br><br>
+                This tool will intelligently check the status of each M3U or Xtream code you paste in, and will filter your input to only display currently working playlists.
+                <br><br>
+                It will tell you the maximum number of connections allowed at a time, as well as how many current connections there are. It will also tell you the expiry date of the playlist.
+                <br><br>
+                You can paste in messy text without first cleaning it up. The tool will parse it for you.
+            </p>
+
+            <textarea
+                id="linksInput"
+                rows="10"
+                class="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 resize-y"
+                placeholder="Paste your M3U or Xtream data here. The tool will automatically detect the format and check the status of each playlist."
+            ></textarea>
+            
+            <div class="flex flex-col sm:flex-row items-center justify-center my-6 gap-4">
+                <div class="flex items-center gap-2">
+                    <label for="minConnectionsInput" class="text-gray-700 font-semibold">Minimum Allowed Simultaneous Connections:</label>
+                    <select id="minConnectionsInput" class="p-2 border border-gray-300 rounded-lg">
+                        <option value="1">1+</option>
+                        <option value="2">2+</option>
+                        <option value="3">3+</option>
+                        <option value="4">4+</option>
+                        <option value="5">5+</option>
+                        <option value="50">50+</option>
+                    </select>
+                </div>
+                <button
+                    id="processButton"
+                    class="bg-blue-600 text-white font-semibold py-3 px-8 rounded-full shadow-md hover:bg-blue-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                    Start Checking
+                </button>
+                <button
+                    id="stopButton"
+                    class="bg-red-600 text-white font-semibold py-3 px-8 rounded-full shadow-md hover:bg-red-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 hidden"
+                >
+                    Stop
+                </button>
+                <button
+                    id="clearButton"
+                    class="bg-gray-400 text-white font-semibold py-3 px-8 rounded-full shadow-md hover:bg-gray-500 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 hidden"
+                >
+                    Clear
+                </button>
+                <button
+                    id="viewFailedButton"
+                    class="bg-red-500 text-white font-semibold py-2 px-4 rounded-full text-sm shadow-md hover:bg-red-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 hidden"
+                >
+                    View Failed Links
+                </button>
+            </div>
+            
+            <div id="loading" class="text-center text-gray-500 font-medium hidden">
+                <p id="loading-text">Processing links...</p>
+            </div>
+
+            <div id="results" class="mt-6 border border-gray-200 rounded-lg p-4 bg-gray-50 shadow-inner hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                    <h2 class="text-xl font-bold text-gray-700">Working Playlists</h2>
+                    <div class="flex flex-wrap gap-2">
+                        <button
+                            id="exportButton"
+                            class="bg-green-500 text-white font-semibold py-2 px-4 rounded-full text-sm shadow-md hover:bg-green-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        >
+                            Export to CSV
+                        </button>
+                        <button
+                            id="showInputButton"
+                            class="bg-gray-500 text-white font-semibold py-2 px-4 rounded-full text-sm shadow-md hover:bg-gray-600 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                        >
+                            Show Input
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button id="filterCurrentUsers" class="filter-button bg-gray-200 text-gray-800 font-semibold py-1 px-3 rounded-full text-xs shadow-sm hover:bg-gray-300 transition">
+                        Sort by Current Users
+                    </button>
+                    <button id="filterMaxUsers" class="filter-button bg-gray-200 text-gray-800 font-semibold py-1 px-3 rounded-full text-xs shadow-sm hover:bg-gray-300 transition">
+                        Sort by Max Users
+                    </button>
+                    <button id="filterExpiry" class="filter-button bg-gray-200 text-gray-800 font-semibold py-1 px-3 rounded-full text-xs shadow-sm hover:bg-gray-300 transition">
+                        Sort by Expiry
+                    </button>
+                    <button id="viewToggle" class="view-toggle bg-gray-200 text-gray-800 font-semibold py-1 px-3 rounded-full text-xs shadow-sm hover:bg-gray-300 transition">
+                        Show Xtream Codes
+                    </button>
+                    <button id="clearFilters" class="filter-button bg-gray-200 text-gray-800 font-semibold py-1 px-3 rounded-full text-xs shadow-sm hover:bg-gray-300 transition">
+                        Clear Filters
+                    </button>
+                </div>
+                
+                <div class="scrollable-results">
+                    <ul id="resultsList" class="list-none space-y-2 text-sm text-gray-700 break-all"></ul>
+                    <ul id="xtreamResultsList" class="list-none space-y-2 text-sm text-gray-700 break-all hidden"></ul>
+                </div>
+            </div>
+            
+            <div id="messageBox" class="mt-4 p-4 rounded-lg text-center font-medium hidden"></div>
+        </div>
+
+        <!-- Right Panel: Playlist Details & Channels -->
+        <div id="detailsPanel" class="bg-white p-8 rounded-xl shadow-lg w-full lg:w-1/2 lg:sticky lg:top-8 hidden self-start">
+            <div id="detailsHeader" class="flex flex-col mb-4">
+                <button id="backButton" class="bg-gray-400 text-white font-semibold py-1 px-4 rounded-full text-sm shadow-md hover:bg-gray-500 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 self-start hidden mb-4">
+                    &larr; Back
+                </button>
+                <h2 id="detailsTitle" class="text-xl font-bold text-gray-700">Playlist Details</h2>
+                <p id="detailsSubheading" class="text-xs text-gray-500 mt-1"></p>
+            </div>
+            <div id="detailsLoading" class="text-center text-gray-500 font-medium hidden">
+                <p>Loading...</p>
+            </div>
+            <div id="detailsContent" class="scrollable-results space-y-4">
+                <ul id="categoriesList" class="list-none space-y-2 text-sm text-gray-700 break-all"></ul>
+                <ul id="channelsList" class="list-none space-y-2 text-sm text-gray-700 break-all hidden"></ul>
+            </div>
+            <div id="detailsMessageBox" class="mt-4 p-4 rounded-lg text-center font-medium hidden"></div>
+        </div>
+    </div>
+
+    <!-- Modals and messages -->
+    <div id="failureModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Failed & Timed Out Playlists</h2>
+            <div class="scrollable-results">
+                <ul id="failedResultsList" class="list-none space-y-2 text-sm text-gray-700 break-all"></ul>
+            </div>
+        </div>
+    </div>
+    
+    <div id="copyMessage" class="copy-message"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const linksInput = document.getElementById('linksInput');
+            const inputPanel = document.getElementById('inputPanel');
+            const minConnectionsInput = document.getElementById('minConnectionsInput');
+            const processButton = document.getElementById('processButton');
+            const stopButton = document.getElementById('stopButton');
+            const clearButton = document.getElementById('clearButton');
+            const viewFailedButton = document.getElementById('viewFailedButton');
+            const showInputButton = document.getElementById('showInputButton');
+            const resultsDiv = document.getElementById('results');
+            const resultsList = document.getElementById('resultsList');
+            const xtreamResultsList = document.getElementById('xtreamResultsList');
+            const loadingIndicator = document.getElementById('loading');
+            const loadingText = document.getElementById('loading-text');
+            const messageBox = document.getElementById('messageBox');
+            const failureModal = document.getElementById('failureModal');
+            const failedResultsList = document.getElementById('failedResultsList');
+            const closeButton = document.querySelector('.close-button');
+            const copyMessage = document.getElementById('copyMessage');
+            const exportButton = document.getElementById('exportButton');
+            
+            // Filter buttons
+            const filterCurrentUsers = document.getElementById('filterCurrentUsers');
+            const filterMaxUsers = document.getElementById('filterMaxUsers');
+            const filterExpiry = document.getElementById('filterExpiry');
+            const clearFilters = document.getElementById('clearFilters');
+            const viewToggle = document.getElementById('viewToggle');
+            
+            const detailsPanel = document.getElementById('detailsPanel');
+            const detailsTitle = document.getElementById('detailsTitle');
+            const detailsSubheading = document.getElementById('detailsSubheading');
+            const detailsLoading = document.getElementById('detailsLoading');
+            const detailsContent = document.getElementById('detailsContent');
+            const categoriesList = document.getElementById('categoriesList');
+            const channelsList = document.getElementById('channelsList');
+            const backButton = document.getElementById('backButton');
+            const detailsMessageBox = document.getElementById('detailsMessageBox');
+
+            let abortController = null;
+            let totalLinks = 0;
+            let processedLinks = 0;
+            let failedLinks = [];
+            let workingLinksData = [];
+            let currentPlaylistData = null;
+            let lastSelectedCategory = null;
+            let currentSort = null;
+            let isXtreamView = false;
+
+            const showMessage = (message, classes) => {
+                messageBox.textContent = message;
+                messageBox.className = `mt-4 p-4 rounded-lg text-center font-medium ${classes} ${message ? '' : 'hidden'}`;
+            };
+            
+            const showDetailsMessage = (message, classes) => {
+                detailsMessageBox.textContent = message;
+                detailsMessageBox.className = `mt-4 p-4 rounded-lg text-center font-medium ${classes} ${message ? '' : 'hidden'}`;
+            };
+
+            const showCopyMessage = (message) => {
+                copyMessage.textContent = message;
+                copyMessage.classList.add('show');
+                setTimeout(() => {
+                    copyMessage.classList.remove('show');
+                }, 2000);
+            };
+
+            const updateLoadingText = () => {
+                loadingText.textContent = `Processing links... (${processedLinks} of ${totalLinks} checked)`;
+            };
+
+            const showResult = (index, link, user, pass, message, activeConnections, maxConnections, remainingTimeString) => {
+                const li = document.createElement('li');
+                li.classList.add('p-2', 'rounded-lg', 'break-all', 'cursor-pointer', 'hover:bg-gray-100');
+                
+                // Set data attributes for easy access later
+                li.setAttribute('data-link-index', index);
+                li.setAttribute('data-active-connections', activeConnections || 0);
+                li.setAttribute('data-max-connections', maxConnections === 'Unlimited' ? 999999 : maxConnections || 0);
+                li.setAttribute('data-expiry', remainingTimeString || '');
+                
+                // Construct the string to be copied
+                const copyText = user && pass ? `${link} ${user}:${pass}` : link;
+                li.setAttribute('data-link', copyText);
+                
+                // Display user/pass in the list item if they exist
+                const displayLink = user && pass ? `<span class="font-bold">${link}</span> <br><span class="text-sm">User: ${user} Pass: ${pass}</span>` : link;
+                
+                li.innerHTML = `${displayLink} <br><span class="text-gray-500 text-xs ml-2">${message}</span>`;
+                resultsList.appendChild(li);
+            };
+
+            const showXtreamResult = (index, link, user, pass, message, activeConnections, maxConnections, remainingTimeString) => {
+                const li = document.createElement('li');
+                li.classList.add('p-3', 'rounded-lg', 'break-all', 'cursor-pointer', 'hover:bg-gray-100', 'bg-white', 'border', 'border-gray-200');
+                
+                // Set data attributes for easy access later
+                li.setAttribute('data-link-index', index);
+                li.setAttribute('data-active-connections', activeConnections || 0);
+                li.setAttribute('data-max-connections', maxConnections === 'Unlimited' ? 999999 : maxConnections || 0);
+                li.setAttribute('data-expiry', remainingTimeString || '');
+                
+                // Construct the string to be copied
+                const copyText = user && pass ? `${link} ${user}:${pass}` : link;
+                li.setAttribute('data-link', copyText);
+                
+                // Create Xtream code display
+                const xtreamCode = document.createElement('div');
+                xtreamCode.classList.add('xtream-code');
+                
+                if (user && pass) {
+                    xtreamCode.innerHTML = `
+                        <div><span class="xtream-label">URL:</span> ${link}</div>
+                        <div><span class="xtream-label">Username:</span> ${user}</div>
+                        <div><span class="xtream-label">Password:</span> ${pass}</div>
+                    `;
+                } else {
+                    xtreamCode.innerHTML = `<div><span class="xtream-label">URL:</span> ${link}</div>`;
+                }
+                
+                li.innerHTML = `
+                    <div class="text-gray-500 text-xs mb-2">${message}</div>
+                `;
+                li.appendChild(xtreamCode);
+                xtreamResultsList.appendChild(li);
+            };
+
+            const renderResults = (data = workingLinksData) => {
+                resultsList.innerHTML = '';
+                xtreamResultsList.innerHTML = '';
+                
+                if (isXtreamView) {
+                    resultsList.classList.add('hidden');
+                    xtreamResultsList.classList.remove('hidden');
+                    data.forEach((linkData, index) => {
+                        showXtreamResult(
+                            index, 
+                            linkData.originalLink, 
+                            linkData.user, 
+                            linkData.pass, 
+                            linkData.message,
+                            linkData.activeConnections,
+                            linkData.maxConnections,
+                            linkData.remainingTimeString
+                        );
+                    });
+                } else {
+                    resultsList.classList.remove('hidden');
+                    xtreamResultsList.classList.add('hidden');
+                    data.forEach((linkData, index) => {
+                        showResult(
+                            index, 
+                            linkData.originalLink, 
+                            linkData.user, 
+                            linkData.pass, 
+                            linkData.message,
+                            linkData.activeConnections,
+                            linkData.maxConnections,
+                            linkData.remainingTimeString
+                        );
+                    });
+                }
+            };
+
+            const showFailedResult = (link, message) => {
+                const li = document.createElement('li');
+                li.classList.add('p-2', 'rounded-lg', 'break-all');
+                li.innerHTML = `<span class="font-bold uppercase bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs mr-2">FAILED</span> ${link} <br><span class="text-gray-500 text-xs ml-2">${message}</span>`;
+                failedResultsList.appendChild(li);
+            };
+            
+            const showCategories = (categories) => {
+                detailsLoading.classList.add('hidden');
+                detailsContent.classList.remove('hidden');
+                channelsList.classList.add('hidden');
+                categoriesList.classList.remove('hidden');
+                detailsTitle.textContent = 'Playlist Categories';
+                detailsSubheading.textContent = 'Click to see details';
+                backButton.classList.add('hidden');
+                categoriesList.innerHTML = '';
+                detailsContent.scrollTop = 0; // Scroll to top
+
+                if (categories.length === 0) {
+                    showDetailsMessage('No categories found for this playlist.', 'bg-yellow-100 text-yellow-700 border border-yellow-200');
+                    return;
+                }
+                showDetailsMessage('', '');
+
+                categories.forEach(category => {
+                    const li = document.createElement('li');
+                    li.classList.add('p-2', 'rounded-lg', 'break-all', 'cursor-pointer', 'hover:bg-gray-100');
+                    li.textContent = category.category_name;
+                    li.setAttribute('data-category-id', category.category_id);
+                    if (lastSelectedCategory && category.category_id === lastSelectedCategory) {
+                        li.classList.add('bg-blue-200');
+                    }
+                    categoriesList.appendChild(li);
+                });
+            };
+            
+            const showChannels = (channels) => {
+                detailsLoading.classList.add('hidden');
+                detailsContent.classList.remove('hidden');
+                categoriesList.classList.add('hidden');
+                channelsList.classList.remove('hidden');
+                detailsTitle.textContent = 'Channels';
+                detailsSubheading.innerHTML = `Clicking a channel copies its streaming URL to your clipboard.`;
+                backButton.classList.remove('hidden');
+                channelsList.innerHTML = '';
+                detailsContent.scrollTop = 0; // Scroll to top
+
+                if (channels.length === 0) {
+                    showDetailsMessage('No channels found in this category.', 'bg-yellow-100 text-yellow-700');
+                    detailsLoading.classList.add('hidden');
+                    return;
+                }
+                showDetailsMessage('', '');
+
+                channels.forEach(channel => {
+                    const li = document.createElement('li');
+                    li.classList.add('p-2', 'rounded-lg', 'break-all', 'cursor-pointer', 'hover:bg-gray-100');
+                    li.textContent = channel.name;
+                    li.setAttribute('data-stream-id', channel.stream_id);
+                    channelsList.appendChild(li);
+                });
+            };
+            
+            const fetchCategories = async (playlist) => {
+                detailsLoading.classList.remove('hidden');
+                detailsContent.classList.add('hidden');
+                showDetailsMessage('', '');
+                try {
+                    const url = `${playlist.originalLink.split('/get.php')[0]}/player_api.php?action=get_live_categories&username=${playlist.user}&password=${playlist.pass}`;
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch categories.');
+                    }
+                    const data = await response.json();
+                    if (data.length === 0) {
+                        showDetailsMessage('No categories found.', 'bg-red-100 text-red-700');
+                        detailsLoading.classList.add('hidden');
+                    } else {
+                        showCategories(data);
+                    }
+                } catch (error) {
+                    showDetailsMessage(`Error fetching categories: ${error.message}`, 'bg-red-100 text-red-700');
+                    detailsLoading.classList.add('hidden');
+                }
+            };
+            
+            const fetchChannels = async (categoryId) => {
+                detailsLoading.classList.remove('hidden');
+                detailsContent.classList.add('hidden');
+                showDetailsMessage('', '');
+                try {
+                    const url = `${currentPlaylistData.originalLink.split('/get.php')[0]}/player_api.php?action=get_live_streams&category_id=${categoryId}&username=${currentPlaylistData.user}&password=${currentPlaylistData.pass}`;
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch channels.');
+                    }
+                    const data = await response.json();
+                    if (data.length === 0) {
+                        showDetailsMessage('No channels found in this category.', 'bg-yellow-100 text-yellow-700');
+                        detailsLoading.classList.add('hidden');
+                        return;
+                    } else {
+                        showChannels(data);
+                    }
+                } catch (error) {
+                    showDetailsMessage(`Error fetching channels: ${error.message}`, 'bg-red-100 text-red-700');
+                    detailsLoading.classList.add('hidden');
+                }
+            };
+
+            const handleResultsClick = (event) => {
+                const listItem = event.target.closest('li');
+                if (listItem) {
+                    const previousSelection = document.querySelector(`#${isXtreamView ? 'xtreamResultsList' : 'resultsList'} .bg-blue-200`);
+                    if (previousSelection) {
+                        previousSelection.classList.remove('bg-blue-200');
+                    }
+                    listItem.classList.add('bg-blue-200');
+                    
+                    const copyText = listItem.getAttribute('data-link');
+                    navigator.clipboard.writeText(copyText)
+                        .then(() => {
+                            showCopyMessage('Copied to clipboard!');
+                        })
+                        .catch(err => {
+                            const tempInput = document.createElement('textarea');
+                            tempInput.value = copyText;
+                            document.body.appendChild(tempInput);
+                            tempInput.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(tempInput);
+                            showCopyMessage('Copied to clipboard!');
+                        });
+
+                    const linkIndex = listItem.getAttribute('data-link-index');
+                    currentPlaylistData = workingLinksData[linkIndex];
+                    lastSelectedCategory = null; // Reset category selection
+                    detailsPanel.classList.remove('hidden');
+                    fetchCategories(currentPlaylistData);
+                }
+            };
+
+            resultsList.addEventListener('click', handleResultsClick);
+            xtreamResultsList.addEventListener('click', handleResultsClick);
+            
+            categoriesList.addEventListener('click', (event) => {
+                const categoryItem = event.target.closest('li');
+                if (categoryItem) {
+                    const categoryId = categoryItem.getAttribute('data-category-id');
+                    lastSelectedCategory = categoryId;
+                    fetchChannels(categoryId);
+                }
+            });
+
+            // Handle channel clicks to copy URL
+            channelsList.addEventListener('click', (event) => {
+                const channelItem = event.target.closest('li');
+                if (channelItem && channelItem.hasAttribute('data-stream-id')) {
+                    const streamId = channelItem.getAttribute('data-stream-id');
+                    
+                    // Construct the stream URL
+                    const baseUrl = currentPlaylistData.originalLink.split('/get.php')[0];
+                    const streamUrl = `${baseUrl}/live/${currentPlaylistData.user}/${currentPlaylistData.pass}/${streamId}.ts`;
+                    
+                    // Copy stream URL to clipboard
+                    navigator.clipboard.writeText(streamUrl)
+                        .then(() => {
+                            showCopyMessage('Stream URL copied to clipboard!');
+                        })
+                        .catch(err => {
+                            const tempInput = document.createElement('textarea');
+                            tempInput.value = streamUrl;
+                            document.body.appendChild(tempInput);
+                            tempInput.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(tempInput);
+                            showCopyMessage('Stream URL copied to clipboard!');
+                        });
+                }
+            });
+
+            backButton.addEventListener('click', () => {
+                if (currentPlaylistData) {
+                    fetchCategories(currentPlaylistData);
+                }
+            });
+
+            viewToggle.addEventListener('click', () => {
+                isXtreamView = !isXtreamView;
+                viewToggle.textContent = isXtreamView ? 'Show M3U Links' : 'Show Xtream Codes';
+                viewToggle.classList.toggle('active', isXtreamView);
+                renderResults();
+            });
+
+            processButton.addEventListener('click', async () => {
+                const originalInput = linksInput.value.trim();
+                if (!originalInput) {
+                    showMessage('Please enter at least one link or a set of Xtream data.', 'bg-red-100 text-red-700 border border-red-200');
+                    return;
+                }
+                
+                // Clear the details panel and any highlighting
+                detailsPanel.classList.add('hidden');
+                detailsSubheading.textContent = '';
+                const previousSelection = document.querySelector(`#${isXtreamView ? 'xtreamResultsList' : 'resultsList'} .bg-blue-200`);
+                if (previousSelection) {
+                    previousSelection.classList.remove('bg-blue-200');
+                }
+
+                let linksToProcess = [];
+                let uncheckableLinks = [];
+                
+                // --- REVISED Pre-processor for multi-line Username/Password/URL blocks ---
+                // A "block" is a chunk of text separated by two or more blank lines from other chunks.
+                // This allows a block to contain single blank lines internally.
+                const blocks = originalInput.split(/\n\s*\n\s*\n+/); 
+                const remainingBlocks = [];
+
+                for (const block of blocks) {
+                    if (!block.trim()) continue;
+
+                    // Check if this block contains the trifecta of keywords
+                    const userMatch = block.match(/(?:Username|User)\s*:\s*([^\s]+)/i);
+                    const passMatch = block.match(/(?:Password|Pass)\s*:\s*([^\s]+)/i);
+                    const urlMatch = block.match(/(?:Url|URL)\s*:\s*([^\s]+)/i);
+
+                    if (userMatch && passMatch && urlMatch) {
+                        // If so, process it as a single credential set
+                        const user = userMatch[1];
+                        const pass = passMatch[1];
+                        let host = urlMatch[1];
+                        if (!host.startsWith('http')) host = `http://${host}`;
+                        const apiLink = `${host}/player_api.php?username=${user}&password=${pass}`;
+                        linksToProcess.push({ originalLink: host, apiLink, user, pass });
+                    } else {
+                        // Otherwise, pass it on to the legacy parser
+                        remainingBlocks.push(block);
+                    }
+                }
+                
+                // Rejoin the remaining blocks with a standard separator for the legacy parser
+                const rawInput = remainingBlocks.join('\n\n');
+
+                // --- ORIGINAL PARSING LOGIC (operates on remaining input) ---
+                if (rawInput) {
+                    const structuredMatch = rawInput.match(/USERNAME:\s*([^\s]+)[\s\S]*?PASSWORD:\s*([^\s]+)[\s\S]*?DOMAIN:\s*([^\s]+)[\s\S]*?PORT:\s*([^\s]+)/);
+                    if (structuredMatch) {
+                        const user = structuredMatch[1];
+                        const pass = structuredMatch[2];
+                        const domain = structuredMatch[3];
+                        const port = structuredMatch[4];
+                        const originalLink = `http://${domain}:${port}`;
+                        const apiLink = `${originalLink}/player_api.php?username=${user}&password=${pass}`;
+                        linksToProcess.push({ originalLink, apiLink, user, pass });
+                    } else {
+                        const lines = rawInput.split('\n');
+                        let currentHost = null;
+
+                        for (let i = 0; i < lines.length; i++) {
+                            const line = lines[i].trim();
+                            if (!line) continue;
+
+                            // Parse "Username : dasiy Password : magic123 Url : http://z.robotminerinfo:8080" format
+                            const usernamePasswordUrlMatch = line.match(/(?:Username|User)\s*:\s*([^\s]+)\s+(?:Password|Pass)\s*:\s*([^\s]+)\s+(?:Url|URL)\s*:\s*([^\s]+)/i);
+                            if (usernamePasswordUrlMatch) {
+                                const user = usernamePasswordUrlMatch[1];
+                                const pass = usernamePasswordUrlMatch[2];
+                                let host = usernamePasswordUrlMatch[3];
+                                if (!host.startsWith('http')) host = `http://${host}`;
+                                const apiLink = `${host}/player_api.php?username=${user}&password=${pass}`;
+                                linksToProcess.push({ originalLink: host, apiLink, user, pass });
+                                currentHost = null;
+                                continue;
+                            }
+
+                            // Parse "Url : http://z.robotminerinfo:8080 Username : dasiy Password : magic123" format
+                            const urlUsernamePasswordMatch = line.match(/(?:Url|URL)\s*:\s*([^\s]+)\s+(?:Username|User)\s*:\s*([^\s]+)\s+(?:Password|Pass)\s*:\s*([^\s]+)/i);
+                            if (urlUsernamePasswordMatch) {
+                                let host = urlUsernamePasswordMatch[1];
+                                const user = urlUsernamePasswordMatch[2];
+                                const pass = urlUsernamePasswordMatch[3];
+                                if (!host.startsWith('http')) host = `http://${host}`;
+                                const apiLink = `${host}/player_api.php?username=${user}&password=${pass}`;
+                                linksToProcess.push({ originalLink: host, apiLink, user, pass });
+                                currentHost = null;
+                                continue;
+                            }
+
+                            // M3U Link parsing
+                            if (line.includes('m3u_plus') || line.includes('get.php')) {
+                                const match = line.match(/(https?:\/\/[^\s]+)/);
+                                if (match) {
+                                    const originalLink = match[1];
+                                    const url = new URL(originalLink);
+                                    const user = url.searchParams.get('username');
+                                    const pass = url.searchParams.get('password');
+                                    const base = `${url.protocol}//${url.host}`;
+                                    const apiLink = `${base}/player_api.php?username=${user}&password=${pass}`;
+
+                                    linksToProcess.push({ originalLink, apiLink, user, pass });
+                                }
+                                currentHost = null; // Reset for next block
+                                continue;
+                            }
+
+                            // New Xtream code parsing
+                            const hostMacFormat = line.match(/╠⍟ 𝗛𝗼𝘀𝘁 - (http[s]?:\/\/[^\s]+)/);
+                            if (hostMacFormat) {
+                                currentHost = hostMacFormat[1];
+                                uncheckableLinks.push({ link: currentHost, message: 'Missing username and password for API check.' });
+                                continue;
+                            }
+
+                            // Case 1: Host line (can be with or without emoji)
+                            const hostEmojiMatch = line.match(/^倹?\s*(http[s]?:\/\/[^\s]+)$/);
+                            if (hostEmojiMatch) {
+                                currentHost = hostEmojiMatch[1];
+                                continue;
+                            }
+
+                            // Case 2: Host line with 🌐 emoji
+                            const hostGlobeMatch = line.match(/^🌐\s*([^\s]+)/);
+                            if (hostGlobeMatch) {
+                                 currentHost = hostGlobeMatch[1].startsWith('http') ? hostGlobeMatch[1] : `http://${hostGlobeMatch[1]}`;
+                                continue;
+                            }
+                            
+                            // Case 3: Host:port line
+                            const hostPortMatch = line.match(/^[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+(:\d+)?$/);
+                            if (hostPortMatch) {
+                                currentHost = hostPortMatch[0].startsWith('http') ? hostPortMatch[0] : `http://${hostPortMatch[0]}`;
+                                continue;
+                            }
+
+                            // Case 4: User/Pass on one line (with or without emoji)
+                            const userPassEmojiMatch = line.match(/^側?\s*([^\s]+)\s*柏?\s*(.+)$/);
+                            if (userPassEmojiMatch && currentHost) {
+                                const user = userPassEmojiMatch[1];
+                                const pass = userPassEmojiMatch[2];
+                                const apiLink = `${currentHost}/player_api.php?username=${user}&password=${pass}`;
+                                linksToProcess.push({ originalLink: currentHost, apiLink, user, pass });
+                                continue;
+                            }
+
+                            // Case 5: User/Pass on one line with 👤 and 🔐 emojis
+                            const userPassGlobeMatch = line.match(/^👤\s*([^\s]+)\s*🔐\s*(.+)$/);
+                            if (userPassGlobeMatch && currentHost) {
+                                const user = userPassGlobeMatch[1];
+                                const pass = userPassGlobeMatch[2];
+                                const apiLink = `${currentHost}/player_api.php?username=${user}&password=${pass}`;
+                                linksToProcess.push({ originalLink: currentHost, apiLink, user, pass });
+                                continue;
+                            }
+                            
+                            // Case 6: Xtream codes with Host and separate User/Pass lines
+                            const userPassSplitMatch = line.match(/^([^\s]+):(.+)$/);
+                            if (userPassSplitMatch && currentHost) {
+                                const user = userPassSplitMatch[1];
+                                const pass = userPassSplitMatch[2];
+                                const apiLink = `${currentHost}/player_api.php?username=${user}&password=${pass}`;
+                                linksToProcess.push({ originalLink: currentHost, apiLink, user, pass });
+                                continue;
+                            }
+
+                            // Case 7: Single-line Xtream codes (host:port user:pass)
+                            const singleLineFormat = line.match(/^([^\s:]+:\d+)\s+([^\s:]+):(.+)$/);
+                            if (singleLineFormat) {
+                                const host = singleLineFormat[1].startsWith('http') ? singleLineFormat[1] : `http://${singleLineFormat[1]}`;
+                                const user = singleLineFormat[2];
+                                const pass = singleLineFormat[3];
+                                const apiLink = `${host}/player_api.php?username=${user}&password=${pass}`;
+                                linksToProcess.push({ originalLink: host, apiLink, user, pass });
+                                currentHost = null; // Reset for the next block
+                                continue;
+                            }
+                        }
+                    }
+                }
+                
+                // Final clean up and deduplication
+                linksToProcess = [...new Map(linksToProcess.map(item => [JSON.stringify(item), item])).values()];
+                uncheckableLinks = [...new Map(uncheckableLinks.map(item => [JSON.stringify(item), item])).values()];
+
+                if (linksToProcess.length === 0 && uncheckableLinks.length === 0) {
+                    showMessage('No valid M3U or Xtream links found in the input.', 'bg-red-100 text-red-700 border border-red-200');
+                    return;
+                }
+
+                processButton.classList.add('hidden');
+                stopButton.classList.remove('hidden');
+                clearButton.classList.add('hidden');
+                loadingIndicator.classList.remove('hidden');
+                updateLoadingText();
+
+                setTimeout(async () => {
+                    totalLinks = linksToProcess.length;
+                    processedLinks = 0;
+                    resultsList.innerHTML = '';
+                    xtreamResultsList.innerHTML = '';
+                    failedResultsList.innerHTML = '';
+                    failedLinks = [];
+                    workingLinksData = [];
+                    resultsDiv.classList.add('hidden');
+                    viewFailedButton.classList.add('hidden');
+                    exportButton.classList.add('hidden');
+                    showMessage('', '');
+                    updateLoadingText();
+                    
+                    uncheckableLinks.forEach(item => {
+                        failedLinks.push({ link: item.link, message: item.message });
+                    });
+
+                    abortController = new AbortController();
+                    const timeout = 10000;
+                    const minConnections = parseInt(minConnectionsInput.value, 10);
+
+                    const checkLink = async (linkData) => {
+                        const id = setTimeout(() => {
+                            if (abortController && !abortController.signal.aborted) {
+                                abortController.abort();
+                            }
+                        }, timeout);
+                        
+                        try {
+                            const response = await fetch(linkData.apiLink, { signal: abortController.signal });
+                            clearTimeout(id);
+                            
+                            if (response.ok) {
+                                const data = await response.json();
+                                const maxConnections = data.user_info ? parseInt(data.user_info.max_connections, 10) : NaN;
+                                const activeConnections = data.user_info ? parseInt(data.user_info.active_cons, 10) : NaN;
+                                
+                                if (!isNaN(maxConnections) && maxConnections >= minConnections) {
+                                    const expDate = data.user_info ? parseInt(data.user_info.exp_date, 10) : NaN;
+                                    const remainingTimeString = formatRemainingTime(expDate);
+                                    return { status: 'Working', ...linkData, message: `Current Connections: ${activeConnections} | Allowed Connections: ${maxConnections === Infinity ? 'Unlimited' : maxConnections} | Expires: ${remainingTimeString}`, activeConnections, maxConnections, remainingTimeString };
+                                } else {
+                                    return { status: 'Failed', ...linkData, message: `Connections (${maxConnections === Infinity ? 'Unlimited' : maxConnections}) did not meet criteria of ${minConnections}` };
+                                }
+                            } else {
+                                throw new Error(`HTTP error! Status: ${response.status}`);
+                            }
+                        } catch (error) {
+                            clearTimeout(id);
+                            if (error.name === 'AbortError') {
+                                return { status: 'Timed Out', ...linkData, message: `Request timed out after ${timeout / 1000}s.` };
+                            }
+                            if (error.message.includes('Failed to fetch')) {
+                                return { status: 'Failed', ...linkData, message: 'Potential CORS/API Error' };
+                            }
+                            return { status: 'Failed', ...linkData, message: `Error: ${error.message}` };
+                        } finally {
+                            processedLinks++;
+                            updateLoadingText();
+                        }
+                    };
+
+                    const linkPromises = linksToProcess.map(link => checkLink(link));
+                    const results = await Promise.allSettled(linkPromises);
+
+                    results.forEach(result => {
+                        if (result.status === 'fulfilled') {
+                            if (result.value.status === 'Working') {
+                                workingLinksData.push(result.value);
+                            } else {
+                                failedLinks.push({ link: result.value.originalLink, message: result.value.message, user: result.value.user, pass: result.value.pass });
+                            }
+                        } else {
+                            failedLinks.push({ link: 'Unknown', message: `Unexpected error: ${result.reason}` });
+                        }
+                    });
+
+                    // Sort working links by max connections (descending)
+                    workingLinksData.sort((a, b) => {
+                        const aMax = a.maxConnections === 'Unlimited' ? 999999 : a.maxConnections;
+                        const bMax = b.maxConnections === 'Unlimited' ? 999999 : b.maxConnections;
+                        return bMax - aMax;
+                    });
+
+                    // Render results
+                    renderResults();
+                    
+                    // Show results
+                    resultsDiv.classList.remove('hidden');
+                    if (failedLinks.length > 0) {
+                        viewFailedButton.classList.remove('hidden');
+                    }
+                    exportButton.classList.remove('hidden');
+                    
+                    // Update UI
+                    processButton.classList.remove('hidden');
+                    stopButton.classList.add('hidden');
+                    clearButton.classList.remove('hidden');
+                    loadingIndicator.classList.add('hidden');
+                    
+                    // Hide the input area
+                    linksInput.classList.add('hidden');
+                    showInputButton.classList.remove('hidden');
+                    
+                    // Show summary message
+                    const workingCount = workingLinksData.length;
+                    const failedCount = failedLinks.length;
+                    const uncheckableCount = uncheckableLinks.length;
+                    showMessage(
+                        `Processed ${totalLinks} links. ${workingCount} working, ${failedCount} failed, ${uncheckableCount} uncheckable.`,
+                        'bg-green-100 text-green-700 border border-green-200'
+                    );
+                }, 100);
+            });
+
+            stopButton.addEventListener('click', () => {
+                if (abortController) {
+                    abortController.abort();
+                }
+                processButton.classList.remove('hidden');
+                stopButton.classList.add('hidden');
+                clearButton.classList.remove('hidden');
+                loadingIndicator.classList.add('hidden');
+                showMessage('Processing stopped by user.', 'bg-yellow-100 text-yellow-700 border border-yellow-200');
+            });
+
+            clearButton.addEventListener('click', () => {
+                linksInput.value = '';
+                resultsList.innerHTML = '';
+                xtreamResultsList.innerHTML = '';
+                failedResultsList.innerHTML = '';
+                resultsDiv.classList.add('hidden');
+                viewFailedButton.classList.add('hidden');
+                exportButton.classList.add('hidden');
+                showMessage('', '');
+                processButton.classList.remove('hidden');
+                stopButton.classList.add('hidden');
+                clearButton.classList.add('hidden');
+                detailsPanel.classList.add('hidden');
+                
+                // Show the input area again
+                linksInput.classList.remove('hidden');
+                showInputButton.classList.add('hidden');
+            });
+
+            showInputButton.addEventListener('click', () => {
+                linksInput.classList.toggle('hidden');
+                showInputButton.textContent = linksInput.classList.contains('hidden') ? 'Show Input' : 'Hide Input';
+            });
+
+            viewFailedButton.addEventListener('click', () => {
+                failedResultsList.innerHTML = '';
+                failedLinks.forEach(item => {
+                    showFailedResult(item.link, item.message);
+                });
+                failureModal.style.display = 'block';
+            });
+
+            closeButton.addEventListener('click', () => {
+                failureModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === failureModal) {
+                    failureModal.style.display = 'none';
+                }
+            });
+
+            exportButton.addEventListener('click', () => {
+                const csvContent = workingLinksData.map(link => {
+                    const line = `${link.originalLink},${link.user || ''},${link.pass || ''},${link.activeConnections || ''},${link.maxConnections || ''},${link.remainingTimeString || ''}`;
+                    return line;
+                }).join('\n');
+                
+                const blob = new Blob([`Link,User,Password,Active Connections,Max Connections,Expiry\n${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'working_playlists.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            // Filter buttons functionality
+            filterCurrentUsers.addEventListener('click', () => {
+                if (currentSort === 'current') {
+                    // If already sorted by current users, reverse the order
+                    workingLinksData.reverse();
+                } else {
+                    // Sort by current users (descending)
+                    workingLinksData.sort((a, b) => (b.activeConnections || 0) - (a.activeConnections || 0));
+                    currentSort = 'current';
+                }
+                renderResults();
+                updateFilterButtonStates('current');
+            });
+
+            filterMaxUsers.addEventListener('click', () => {
+                if (currentSort === 'max') {
+                    // If already sorted by max users, reverse the order
+                    workingLinksData.reverse();
+                } else {
+                    // Sort by max users (descending)
+                    workingLinksData.sort((a, b) => {
+                        const aMax = a.maxConnections === 'Unlimited' ? 999999 : a.maxConnections;
+                        const bMax = b.maxConnections === 'Unlimited' ? 999999 : b.maxConnections;
+                        return bMax - aMax;
+                    });
+                    currentSort = 'max';
+                }
+                renderResults();
+                updateFilterButtonStates('max');
+            });
+
+            filterExpiry.addEventListener('click', () => {
+                if (currentSort === 'expiry') {
+                    // If already sorted by expiry, reverse the order
+                    workingLinksData.reverse();
+                } else {
+                    // Sort by expiry (ascending - soonest expiry first)
+                    workingLinksData.sort((a, b) => {
+                        const aTime = a.remainingTimeString === 'Expired' ? -1 : a.remainingTimeString === 'Lifetime' ? 9999999999 : parseInt(a.remainingTimeString) || 0;
+                        const bTime = b.remainingTimeString === 'Expired' ? -1 : b.remainingTimeString === 'Lifetime' ? 9999999999 : parseInt(b.remainingTimeString) || 0;
+                        return aTime - bTime;
+                    });
+                    currentSort = 'expiry';
+                }
+                renderResults();
+                updateFilterButtonStates('expiry');
+            });
+
+            clearFilters.addEventListener('click', () => {
+                // Restore original order (by max connections)
+                workingLinksData.sort((a, b) => {
+                    const aMax = a.maxConnections === 'Unlimited' ? 999999 : a.maxConnections;
+                    const bMax = b.maxConnections === 'Unlimited' ? 999999 : b.maxConnections;
+                    return bMax - aMax;
+                });
+                currentSort = null;
+                renderResults();
+                updateFilterButtonStates(null);
+            });
+
+            const updateFilterButtonStates = (activeFilter) => {
+                // Remove active class from all filter buttons
+                document.querySelectorAll('.filter-button').forEach(button => {
+                    button.classList.remove('active');
+                });
+                
+                // Add active class to the current filter button if applicable
+                if (activeFilter === 'current') {
+                    filterCurrentUsers.classList.add('active');
+                } else if (activeFilter === 'max') {
+                    filterMaxUsers.classList.add('active');
+                } else if (activeFilter === 'expiry') {
+                    filterExpiry.classList.add('active');
+                }
+            };
+
+            // Helper function to format remaining time
+            const formatRemainingTime = (expDate) => {
+                if (isNaN(expDate)) return 'Unknown';
+                if (expDate === 0) return 'Lifetime';
+                
+                const now = Math.floor(Date.now() / 1000);
+                const remainingSeconds = expDate - now;
+                
+                if (remainingSeconds <= 0) return 'Expired';
+                
+                const days = Math.floor(remainingSeconds / (24 * 60 * 60));
+                const hours = Math.floor((remainingSeconds % (24 * 60 * 60)) / (60 * 60));
+                
+                return `${days} days, ${hours} hours`;
+            };
+        });
+    </script>
+</body>
+</html>
+
+
