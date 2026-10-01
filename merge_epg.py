@@ -12,6 +12,7 @@ SOURCES = [
     "https://epgshare01.online/epgshare01/epg_ripper_US_LOCALS1.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_US_SPORTS1.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz",
+    "https://epgshare01.online/epgshare01/epg_ripper_CA2.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_CH1.xml.gz",
     "https://i.mjh.nz/PlutoTV/us.xml.gz",
 ]
