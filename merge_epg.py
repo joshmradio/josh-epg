@@ -24,6 +24,7 @@ REQUIRED_IDS = {
     "ESPN.HD.us2",
     "SkySpMainEvHD.uk",
 }
+PLUTO_TARGETS = ("hit sitcom", "80s rewind", "90s throwback", "comedy", "vevo", "yo! mtv")
 
 def download(url):
     req = urllib.request.Request(url, headers={"User-Agent": "Josh-EPG/1.0"})
@@ -46,6 +47,14 @@ def main():
         print(f"Downloading {url}")
         roots.append(parse_gz(download(url), url))
 
+    # Log the exact IDs/names from the Pluto source so playlist mappings can be verified.
+    print("PLUTO EPG TARGET MATCHES:")
+    for ch in roots[-1].findall("channel"):
+        names = [n.text or "" for n in ch.findall("display-name")]
+        hay = " | ".join(names).lower()
+        if any(t in hay for t in PLUTO_TARGETS):
+            print(f"PLUTO_ID {ch.get('id')} :: {' | '.join(names)}")
+
     out = ET.Element("tv", {"generator-info-name": "Josh EPG Merge"})
     channels = {}
     programme_keys = set()
@@ -66,12 +75,7 @@ def main():
 
     for root in roots:
         for pr in root.findall("programme"):
-            key = (
-                pr.get("channel"),
-                pr.get("start"),
-                pr.get("stop"),
-                pr.findtext("title"),
-            )
+            key = (pr.get("channel"), pr.get("start"), pr.get("stop"), pr.findtext("title"))
             if key not in programme_keys:
                 programme_keys.add(key)
                 programmes.append(pr)
@@ -88,8 +92,6 @@ def main():
     tmp = OUTPUT + ".tmp"
     with gzip.open(tmp, "wb", compresslevel=9) as f:
         f.write(xml_bytes)
-
-    # Atomic replacement: if anything above fails, the previous guide remains intact.
     os.replace(tmp, OUTPUT)
     print(f"Published {OUTPUT}: {len(channels)} channels, {len(programmes)} programmes")
 
