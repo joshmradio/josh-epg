@@ -2,6 +2,9 @@ name: Update combined EPG
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - "merge_epg.py"
   schedule:
     - cron: "17 6,18 * * *"
 
