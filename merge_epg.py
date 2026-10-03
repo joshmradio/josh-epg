@@ -3,6 +3,7 @@ import io
 import os
 import urllib.request
 import xml.etree.ElementTree as ET
+import copy
 
 SOURCES = [
     "https://epgshare01.online/epgshare01/epg_ripper_US2.xml.gz",
@@ -18,6 +19,13 @@ OUTPUT = "guide.xml.gz"
 REQUIRED_IDS = {"WABC-DT.us_locals1", "KYW-DT.us_locals1", "ESPN.HD.us2", "SkySpMainEvHD.uk"}
 PLUTO_TARGETS = ("hit sitcom", "80s rewind", "90s throwback", "comedy", "vevo", "yo! mtv")
 SKY_TARGETS = ("sky cinema", "sky premiere", "sky action", "sky comedy", "sky family", "sky thriller", "sky sci", "sky drama", "sky great", "sky hits", "sky select")
+
+# Preserve the legacy Sky Cinema IDs that TiviMax previously matched successfully.
+# Each alias gets a copy of the current UK1 channel and all of its programme records.
+SKY_LEGACY_ALIASES = {
+    "SkyPremiereHD.uk": "Sky.Premiere.uk",
+    "Sky.ScFi/HorHD.uk": "Sky.Sci-Fi.HD.uk",
+}
 
 def download(url):
     req = urllib.request.Request(url, headers={"User-Agent": "Josh-EPG/1.0"})
@@ -65,17 +73,40 @@ def main():
             cid = ch.get("id")
             if cid and cid not in channels:
                 channels[cid] = ch
+
+    # Add legacy Sky channel IDs as aliases of the current UK1 IDs.
+    for legacy_id, current_id in SKY_LEGACY_ALIASES.items():
+        if current_id in channels:
+            alias_ch = copy.deepcopy(channels[current_id])
+            alias_ch.set("id", legacy_id)
+            channels[legacy_id] = alias_ch
+            print(f"SKY_ALIAS {legacy_id} -> {current_id}")
+        else:
+            raise RuntimeError(f"Sky alias source missing: {current_id}")
+
     missing = REQUIRED_IDS - set(channels)
     if missing:
         raise RuntimeError("Required guide IDs missing: " + ", ".join(sorted(missing)))
     for cid in sorted(channels):
         out.append(channels[cid])
+
     for root in roots:
         for pr in root.findall("programme"):
             key = (pr.get("channel"), pr.get("start"), pr.get("stop"), pr.findtext("title"))
             if key not in programme_keys:
                 programme_keys.add(key)
                 programmes.append(pr)
+
+            # Duplicate current Sky programme records onto the legacy IDs.
+            for legacy_id, current_id in SKY_LEGACY_ALIASES.items():
+                if pr.get("channel") == current_id:
+                    alias_pr = copy.deepcopy(pr)
+                    alias_pr.set("channel", legacy_id)
+                    alias_key = (legacy_id, alias_pr.get("start"), alias_pr.get("stop"), alias_pr.findtext("title"))
+                    if alias_key not in programme_keys:
+                        programme_keys.add(alias_key)
+                        programmes.append(alias_pr)
+
     if len(channels) < 500 or len(programmes) < 10000:
         raise RuntimeError("Validation failed")
     for pr in programmes:
