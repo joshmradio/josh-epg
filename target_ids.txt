@@ -1,0 +1,14 @@
+Sky.Action.HD.uk
+Sky.Cinema.Comedy.uk
+Sky.Drama.HD.uk
+Sky.Family.HD.uk
+Sky.Greats.HD.uk
+Sky.Cinema.Hits.HD.uk
+SkyPremiereHD.uk
+Sky.ScFi/HorHD.uk
+Sky.Cinema.Select.uk
+Sky.Thriller.HD.uk
+SkySpMainEvHD.uk
+WABC-DT.us_locals1
+KYW-DT.us_locals1
+ESPN.HD.us2
