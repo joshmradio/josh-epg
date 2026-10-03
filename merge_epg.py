@@ -17,6 +17,7 @@ SOURCES = [
 OUTPUT = "guide.xml.gz"
 REQUIRED_IDS = {"WABC-DT.us_locals1", "KYW-DT.us_locals1", "ESPN.HD.us2", "SkySpMainEvHD.uk"}
 PLUTO_TARGETS = ("hit sitcom", "80s rewind", "90s throwback", "comedy", "vevo", "yo! mtv")
+SKY_TARGETS = ("sky cinema", "sky premiere", "sky action", "sky comedy", "sky family", "sky thriller", "sky sci", "sky drama", "sky great", "sky hits", "sky select")
 
 def download(url):
     req = urllib.request.Request(url, headers={"User-Agent": "Josh-EPG/1.0"})
@@ -33,20 +34,27 @@ def parse_gz(data, url):
     except Exception as e:
         raise RuntimeError(f"Could not parse {url}: {e}") from e
 
+def print_matches(root, label, targets):
+    counts = {}
+    for p in root.findall("programme"):
+        cid = p.get("channel")
+        counts[cid] = counts.get(cid, 0) + 1
+    print(label)
+    for ch in root.findall("channel"):
+        names = [n.text or "" for n in ch.findall("display-name")]
+        hay = " | ".join(names).lower()
+        if any(t in hay for t in targets):
+            cid = ch.get("id")
+            print(f"{label.split()[0]}_ID {cid} :: {' | '.join(names)} :: PROGRAMMES={counts.get(cid, 0)}")
+
 def main():
     roots = []
     for url in SOURCES:
         print(f"Downloading {url}")
         roots.append(parse_gz(download(url), url))
 
-    print("PLUTO EPG TARGET MATCHES:")
-    for ch in roots[-1].findall("channel"):
-        names = [n.text or "" for n in ch.findall("display-name")]
-        hay = " | ".join(names).lower()
-        if any(t in hay for t in PLUTO_TARGETS):
-            cid = ch.get("id")
-            pcount = sum(1 for p in roots[-1].findall("programme") if p.get("channel") == cid)
-            print(f"PLUTO_ID {cid} :: {' | '.join(names)} :: PROGRAMMES={pcount}")
+    print_matches(roots[-1], "PLUTO EPG TARGET MATCHES:", PLUTO_TARGETS)
+    print_matches(roots[3], "SKY EPG TARGET MATCHES:", SKY_TARGETS)
 
     out = ET.Element("tv", {"generator-info-name": "Josh EPG Merge"})
     channels = {}
