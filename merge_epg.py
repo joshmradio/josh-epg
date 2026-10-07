@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 import copy
 
 SOURCES = [
+    "https://vcicio.github.io/US-EPG/merged_epg.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_US2.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_US_LOCALS1.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_US_SPORTS1.xml.gz",
