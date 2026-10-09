@@ -232,3 +232,4 @@ NHL-WashingtonCapitals.us
 NHL-WinnipegJets.us
 NFL-ArizonaCardinals.us
 NFL-ChicagoBears.us
+AMCThrillers.us@SD
