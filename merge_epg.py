@@ -15,6 +15,7 @@ SOURCES = [
     "https://epgshare01.online/epgshare01/epg_ripper_CH1.xml.gz",
     "https://i.mjh.nz/PlutoTV/us.xml.gz",
 ]
+# AMC Thrillers is included in target_ids.txt; keep its source ID unchanged.
 OUTPUT = "guide.xml.gz"
 SKY_LEGACY_ALIASES = {
     "SkyPremiereHD.uk": "Sky.Premiere.uk",
