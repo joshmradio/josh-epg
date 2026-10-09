@@ -14,11 +14,13 @@ SOURCES = [
     "https://epgshare01.online/epgshare01/epg_ripper_CA2.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_CH1.xml.gz",
     "https://i.mjh.nz/PlutoTV/us.xml.gz",
+    "https://epgshare01.online/epgshare01/epg_ripper_PLEX1.xml.gz",
 ]
 # AMC Thrillers is included in target_ids.txt; keep its source ID unchanged.
 OUTPUT = "guide.xml.gz"
-SKY_LEGACY_ALIASES = {
+CHANNEL_ID_ALIASES = {
     "SkyPremiereHD.uk": "Sky.Premiere.uk",
+    "AMCThrillers.us@SD": "plex.tv.AMC.Thrillers.plex",
     "Sky.ScFi/HorHD.uk": "Sky.Sci-Fi.HD.uk",
 }
 
@@ -55,11 +57,11 @@ def main():
 
     for legacy_id, current_id in SKY_LEGACY_ALIASES.items():
         if current_id not in channels:
-            raise RuntimeError(f"Sky alias source missing: {current_id}")
+            raise RuntimeError(f"EPG alias source missing: {current_id}")
         alias = copy.deepcopy(channels[current_id])
         alias.set("id", legacy_id)
         channels[legacy_id] = alias
-        print(f"SKY_ALIAS {legacy_id} -> {current_id}")
+        print(f"EPG_ALIAS {legacy_id} -> {current_id}")
 
     found = target_ids & set(channels)
     missing = target_ids - set(channels)
