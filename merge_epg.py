@@ -55,7 +55,7 @@ def main():
             if cid and cid not in channels:
                 channels[cid] = ch
 
-    for legacy_id, current_id in SKY_LEGACY_ALIASES.items():
+    for legacy_id, current_id in CHANNEL_ID_ALIASES.items():
         if current_id not in channels:
             raise RuntimeError(f"EPG alias source missing: {current_id}")
         alias = copy.deepcopy(channels[current_id])
@@ -83,7 +83,7 @@ def main():
                 if key not in seen:
                     seen.add(key)
                     programmes.append(pr)
-            for legacy_id, current_id in SKY_LEGACY_ALIASES.items():
+            for legacy_id, current_id in CHANNEL_ID_ALIASES.items():
                 if legacy_id in found and cid == current_id:
                     alias = copy.deepcopy(pr)
                     alias.set("channel", legacy_id)
