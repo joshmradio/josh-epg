@@ -1,10 +1,34 @@
 import datetime as dt
 import unittest
+import gzip
+import tempfile
+from pathlib import Path
 import xml.etree.ElementTree as ET
-from binged_epg import build, js_object, timestamp, validate
+from binged_epg import build, js_object, timestamp, validate, local_listings
 
 
 class GuideTests(unittest.TestCase):
+    def test_local_uses_exact_callsign_and_not_subchannel_or_other_market(self):
+        xml = b'''<tv><channel id="WRC-DT.us_locals1"/><channel id="WRC-DT2.us_locals1"/>
+        <programme channel="WRC-DT.us_locals1" start="20261019140000 +0000" stop="20261019150000 +0000"><title>DC news</title></programme>
+        <programme channel="WRC-DT2.us_locals1" start="20261019140000 +0000" stop="20261019150000 +0000"><title>Wrong subchannel</title></programme></tv>'''
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'locals.gz'
+            path.write_bytes(gzip.compress(xml))
+            cat = {'local:WRC': [{'id': 'dc'}], 'local:WNBC': [{'id': 'ny'}]}
+            rows = local_listings(cat, path, timestamp('2026-10-19T14:00Z'))
+        self.assertEqual(set(rows), {'dc'})
+        self.assertEqual([x['n'] for x in rows['dc']], ['DC news'])
+
+    def test_station_schedule_overrides_generic_network(self):
+        now = timestamp('2026-10-19T14:00Z')
+        generic = {'n': 'Generic NBC', 's': '2026-10-19T14:00Z', 'e': '2026-10-19T15:00Z'}
+        local = dict(generic, n='Local DC news')
+        xml, status = build({'epgpw': {'channels': {'NBC': [generic]}}},
+            {'NBC': [{'id': 'dc'}]}, now, {'dc': [local]})
+        self.assertEqual(ET.fromstring(xml).findtext('programme/title'), 'Local DC news')
+        self.assertEqual(status['local_streams_with_current_or_future_listings'], 1)
+
     def test_parses_json_without_executing_javascript(self):
         self.assertEqual(js_object('window.X = {"a": 1}; malicious();', 'X'), {'a': 1})
 

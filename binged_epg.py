@@ -6,6 +6,7 @@ import datetime as dt
 import gzip
 import json
 import os
+import re
 from pathlib import Path
 import tempfile
 import urllib.request
@@ -13,6 +14,7 @@ import xml.etree.ElementTree as ET
 
 UTC = dt.timezone.utc
 BASE = 'https://binged.net/data/'
+LOCAL_GUIDE = 'https://epgshare01.online/epgshare01/epg_ripper_US_LOCALS1.xml.gz'
 
 
 def js_object(text, variable):
@@ -37,7 +39,74 @@ def fetch(name, variable):
     return js_object(text.decode('utf-8'), variable)
 
 
-def build(snapshot, catalog, now):
+def local_candidates(callsign):
+    if not re.fullmatch(r'[KW][A-Z0-9]{2,5}(?:-(?:DT|TV|LD|CD|D|LP)[0-9]?)?', callsign):
+        return []
+    suffixes = [''] if '-' in callsign else ['-DT', '', '-TV', '-LD', '-CD', '-D', '-LP']
+    return [callsign + suffix + '.us_locals1' for suffix in suffixes]
+
+
+def local_listings(catalog, compressed_path, now):
+    """Exact station matches only; never substitute another city's network feed."""
+    stations = {}
+    for key, rows in catalog.items():
+        if key.startswith('local:'):
+            stations[key] = (local_candidates(key[6:]), [row['id'] for row in rows])
+    channels = set()
+    source_to_ids = None
+    listings = collections.defaultdict(list)
+    with gzip.open(compressed_path, 'rb') as handle:
+        context = ET.iterparse(handle, events=('start', 'end'))
+        _, root = next(context)
+        for event, node in context:
+            if event != 'end':
+                continue
+            if node.tag == 'channel':
+                channels.add(node.get('id'))
+                root.clear()
+            elif node.tag == 'programme':
+                if source_to_ids is None:
+                    source_to_ids = collections.defaultdict(set)
+                    for candidates, ids in stations.values():
+                        match = next((candidate for candidate in candidates if candidate in channels), None)
+                        if match:
+                            source_to_ids[match].update(ids)
+                ids = source_to_ids.get(node.get('channel'), set())
+                if ids:
+                    try:
+                        start = dt.datetime.strptime(node.get('start'), '%Y%m%d%H%M%S %z').astimezone(UTC)
+                        stop = dt.datetime.strptime(node.get('stop'), '%Y%m%d%H%M%S %z').astimezone(UTC)
+                    except (ValueError, TypeError):
+                        root.clear()
+                        continue
+                    title = node.findtext('title')
+                    if title and stop > start and stop > now - dt.timedelta(days=1) and start < now + dt.timedelta(days=8):
+                        programme = {'n': title, 's': start.isoformat(), 'e': stop.isoformat(),
+                            'desc': node.findtext('desc'), 'sport': node.findtext('category')}
+                        for sid in ids:
+                            listings[sid].append(programme)
+                root.clear()
+    return listings
+
+
+def download_local_guide():
+    req = urllib.request.Request(LOCAL_GUIDE, headers={'User-Agent': 'Josh-Binged-XMLTV/1.0'})
+    temporary = tempfile.NamedTemporaryFile(delete=False, suffix='.xml.gz')
+    try:
+        with temporary, urllib.request.urlopen(req, timeout=180) as response:
+            count = 0
+            while chunk := response.read(1024 * 1024):
+                count += len(chunk)
+                if count > 150_000_000:
+                    raise ValueError('Local guide download exceeds limit')
+                temporary.write(chunk)
+        return Path(temporary.name)
+    except BaseException:
+        Path(temporary.name).unlink(missing_ok=True)
+        raise
+
+
+def build(snapshot, catalog, now, locals_by_id=None):
     entries = {}
     for rows in catalog.values():
         for row in rows:
@@ -77,6 +146,13 @@ def build(snapshot, catalog, now):
             add(source['id'], {'n': event.get('title'), 's': event.get('start'),
                 'e': event.get('end'), 'sport': event.get('sport'), 'desc': event.get('league')})
 
+    # Exact station listings take precedence over the generic national network schedule.
+    local_current_ids = set()
+    for sid, programmes in (locals_by_id or {}).items():
+        if any(timestamp(programme['e']) > now for programme in programmes):
+            schedules[sid] = programmes
+            local_current_ids.add(sid)
+
     root = ET.Element('tv', {'generator-info-name': 'Josh Binged XMLTV',
         'source-info-name': 'Binged public schedule', 'source-info-url': 'https://binged.net/'})
     total = 0
@@ -110,6 +186,7 @@ def build(snapshot, catalog, now):
     status = {'generated_at': now.isoformat(), 'source_updated_at': snapshot.get('fetchedAt'),
         'channels': len(entries), 'channels_with_current_or_future_listings': len(current_channels),
         'programmes': total, 'latest_programme_end': latest.isoformat(),
+        'local_streams_with_current_or_future_listings': len(local_current_ids),
         'note': 'Only available source listings are included. Blank channels have no reliable listings.'}
     return ET.tostring(root, encoding='utf-8', xml_declaration=True), status
 
@@ -141,6 +218,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--fixture-dir', type=Path)
     parser.add_argument('--output-dir', type=Path, default=Path('.'))
+    parser.add_argument('--locals-file', type=Path)
     args = parser.parse_args()
     if args.fixture_dir:
         snapshot = js_object((args.fixture_dir / 'current_snapshot.js').read_text(), 'ESPN_SNAPSHOT')
@@ -151,7 +229,15 @@ def main():
             b = pool.submit(fetch, 'sources.js', 'RALLY_SOURCES_PUBLIC')
             snapshot, catalog = a.result(), b.result()
     now = dt.datetime.now(UTC)
-    xml, status = build(snapshot, catalog, now)
+    local_file = args.locals_file or download_local_guide()
+    try:
+        locals_by_id = local_listings(catalog, local_file, now)
+    finally:
+        if not args.locals_file:
+            local_file.unlink(missing_ok=True)
+    if sum(any(timestamp(item['e']) > now for item in rows) for rows in locals_by_id.values()) < 100:
+        raise ValueError('Local station guide coverage unexpectedly low; keeping published guide')
+    xml, status = build(snapshot, catalog, now, locals_by_id)
     validate(xml, status, now)
     atomic_write(args.output_dir / 'binged-guide.xml.gz', gzip.compress(xml, mtime=0))
     atomic_write(args.output_dir / 'binged-guide-status.json', (json.dumps(status, indent=2) + '\n').encode())
