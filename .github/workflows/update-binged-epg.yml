@@ -1,0 +1,42 @@
+name: Update Binged EPG
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'binged_epg.py'
+      - 'test_binged_epg.py'
+      - '.github/workflows/update-binged-epg.yml'
+  schedule:
+    - cron: '23 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-binged-epg
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test XMLTV mapping
+        run: python -m unittest -v test_binged_epg.py
+      - name: Fetch and validate fresh Binged schedule
+        run: python binged_epg.py
+      - name: Publish validated guide
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add binged-guide.xml.gz binged-guide-status.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Refresh Binged EPG'
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
