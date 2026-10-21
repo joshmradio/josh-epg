@@ -63,6 +63,35 @@ def main():
         channels[legacy_id] = alias
         print(f"EPG_ALIAS {legacy_id} -> {current_id}")
 
+    # ACC Network uses different IDs across XMLTV providers. Publish a stable
+    # ACC.Network.us alias with real programme data from the available source.
+    acc_candidates = []
+    for root in roots:
+        for ch in root.findall("channel"):
+            cid = ch.get("id", "")
+            names = [n.text.strip() for n in ch.findall("display-name") if n.text]
+            normalized = ["".join(c for c in name.upper() if c.isalnum()) for name in names]
+            if ("ACCNETWORK" in normalized or "ACCN" in normalized or
+                    "ACCNETWORK" in "".join(c for c in cid.upper() if c.isalnum())):
+                if cid not in acc_candidates:
+                    acc_candidates.append(cid)
+    programme_counts = {}
+    for root in roots:
+        for pr in root.findall("programme"):
+            cid = pr.get("channel")
+            if cid in acc_candidates:
+                programme_counts[cid] = programme_counts.get(cid, 0) + 1
+    acc_source = max(acc_candidates, key=lambda cid: programme_counts.get(cid, 0), default=None)
+    if acc_source and programme_counts.get(acc_source, 0):
+        alias = copy.deepcopy(channels[acc_source])
+        alias.set("id", "ACC.Network.us")
+        channels["ACC.Network.us"] = alias
+        target_ids.add("ACC.Network.us")
+        CHANNEL_ID_ALIASES["ACC.Network.us"] = acc_source
+        print(f"EPG_ALIAS ACC.Network.us -> {acc_source} ({programme_counts[acc_source]} programmes)")
+    else:
+        print(f"WARNING ACC Network has no programmes in upstream sources; candidates={acc_candidates}")
+
     found = target_ids & set(channels)
     missing = target_ids - set(channels)
     print(f"Target IDs: {len(target_ids)}; found: {len(found)}; missing: {len(missing)}")
