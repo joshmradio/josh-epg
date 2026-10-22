@@ -1,6 +1,11 @@
 name: Audit Binged hosted access
 on:
   workflow_dispatch:
+    inputs:
+      full_lineup:
+        description: Validate every exact catalog match in the preserved lineup
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -9,7 +14,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    timeout-minutes: 330
     defaults:
       run:
         working-directory: tools/binged_refresh
@@ -27,8 +32,14 @@ jobs:
           BINGED_HOUSE_PIN: ${{ secrets.BINGED_HOUSE_PIN }}
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
           DROPBOX_REFRESH_TOKEN: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
+          FULL_LINEUP: ${{ inputs.full_lineup }}
           REPORT_DIR: ${{ runner.temp }}/binged-reports
-        run: python hosted_refresh.py --audit-only
+        run: |
+          if [ "$FULL_LINEUP" = "true" ]; then
+            python hosted_refresh.py
+          else
+            python hosted_refresh.py --audit-only
+          fi
       - name: Save credential-free reports only
         if: always()
         uses: actions/upload-artifact@v4
