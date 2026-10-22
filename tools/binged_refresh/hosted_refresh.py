@@ -97,7 +97,7 @@ def main():
                 checked = test_hls(url, Client())
                 media_checks.append({'source_id': source_id(url), **checked})
                 evidence[sid] = checked
-                if any(checked.get(k) in (401, 403, 429) for k in ('http', 'key_http', 'segment_http')):
+                if any(checked.get(k) in (401, 403, 429) for k in ('http', 'manifest_http', 'key_http', 'init_http', 'segment_http')):
                     raise ValueError('provider_media_denial')
             atomic_write(report_dir / 'media-checks.json', (json.dumps(media_checks, indent=2) + '\n').encode())
         guide_bytes = download('https://raw.githubusercontent.com/joshmradio/josh-epg/main/binged-guide.xml.gz')
