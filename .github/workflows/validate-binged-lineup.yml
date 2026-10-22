@@ -1,0 +1,39 @@
+name: Validate complete Binged lineup
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: binged-playlist-refresh
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    defaults:
+      run:
+        working-directory: tools/binged_refresh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run offline validation tests
+        run: python -m unittest discover -s tests -v
+      - name: Authorize and validate privately
+        env:
+          BINGED_LINEUP_GZIP_1: ${{ secrets.BINGED_LINEUP_GZIP_1 }}
+          BINGED_LINEUP_GZIP_2: ${{ secrets.BINGED_LINEUP_GZIP_2 }}
+          BINGED_HOUSE_PIN: ${{ secrets.BINGED_HOUSE_PIN }}
+          DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
+          DROPBOX_REFRESH_TOKEN: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
+          REPORT_DIR: ${{ runner.temp }}/binged-reports
+        run: python hosted_refresh.py
+      - name: Save credential-free reports only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: binged-full-validation-reports
+          path: ${{ runner.temp }}/binged-reports/*.json
+          retention-days: 7
+          if-no-files-found: ignore
