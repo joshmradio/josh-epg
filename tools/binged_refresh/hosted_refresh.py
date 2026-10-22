@@ -106,6 +106,8 @@ def main():
                 raise ValueError('coverage_below_approved_baseline')
             publish_dropbox(rebuilt.encode())
             report['published'] = True
+        # Public repository artifacts must not disclose the private selected lineup.
+        report.pop('channels', None)
         atomic_write(report_dir / 'validation-report.json', (json.dumps(report, indent=2) + '\n').encode())
         print(json.dumps({'counts': report['counts'], 'published': report['published']}))
 
