@@ -17,7 +17,7 @@ import xml.etree.ElementTree as ET
 
 from authorize import authenticate
 from discover_routed import run
-from refresh import atomic_write, build, parse, public_object
+from refresh import Client, atomic_write, build, parse, public_object, test_hls, source_id
 from routing import load_config
 
 
@@ -91,6 +91,15 @@ def main():
         discovery = run(selected, catalog, config, sessions, checkpoint)
         if discovery['stopped_reason']:
             raise ValueError('provider_denial_or_renewal_required')
+        media_checks = []
+        if args.audit_only:
+            for sid, url in mappings.items():
+                checked = test_hls(url, Client())
+                media_checks.append({'source_id': source_id(url), **checked})
+                evidence[sid] = checked
+                if any(checked.get(k) in (401, 403, 429) for k in ('http', 'key_http', 'segment_http')):
+                    raise ValueError('provider_media_denial')
+            atomic_write(report_dir / 'media-checks.json', (json.dumps(media_checks, indent=2) + '\n').encode())
         guide_bytes = download('https://raw.githubusercontent.com/joshmradio/josh-epg/main/binged-guide.xml.gz')
         guide = ET.fromstring(gzip.decompress(guide_bytes))
         guide_ids = {e.get('id') for e in guide.findall('channel')}
@@ -98,6 +107,7 @@ def main():
         rebuilt, report = build(source, list(mappings.values()), ids, guide_ids, None, prechecked=evidence)
         report['session_expiry_utc'] = {o: dt.datetime.fromtimestamp(s['exp'] / 1000, dt.timezone.utc).isoformat() for o, s in sessions.items()}
         report['hosted_login_tested'] = True
+        report['automatic_renewal'] = 'normal_hosted_sign_in_tested_schedule_not_enabled'
         report['audit_only'] = args.audit_only
         report['published'] = False
         minimum = int(os.environ.get('MIN_REFRESHED_CHANNELS', '0'))
