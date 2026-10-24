@@ -5,8 +5,10 @@ on:
   push:
     paths:
       - "merge_epg.py"
+      - "target_ids.txt"
+      - ".github/workflows/update-epg.yml"
   schedule:
-    - cron: "17 6,18 * * *"
+    - cron: "17 */4 * * *"     # every 4 hours, so a source that comes back is picked up quickly
 
 permissions:
   contents: write
@@ -18,7 +20,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
 
     steps:
       - name: Check out repository
@@ -36,10 +38,26 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add guide.xml.gz
+          git add guide.xml.gz guide-status.json
           if git diff --cached --quiet; then
             echo "Guide is unchanged."
           else
             git commit -m "Update combined EPG"
+            git pull --rebase
             git push
           fi
+
+      # Fails (so GitHub emails you) when the sources have stopped updating and the listings are about to run out.
+      - name: Check the listings aren't running out
+        run: |
+          python - <<'PY'
+          import json, sys
+          s = json.load(open("guide-status.json"))
+          now, ahead = s["with_listings_now_or_soon"], s["with_a_day_of_listings_left"]
+          print(f"{ahead} of {now} channels have at least a day of listings left; most end {s['listings_end_for_most_channels']}")
+          for url, info in s["sources"].items():
+              print(f"  {url.rsplit('/', 1)[-1]}: " + (f"updated {info.get('last_modified') or '?'}" if info.get("ok") else f"FAILED {info.get('error')}"))
+          if now and ahead < now * 0.5:
+              print("::error::The guide sources haven't updated: most channels have less than a day of listings left.")
+              sys.exit(1)
+          PY
