@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T19:02+00:00",
+  "generated_at": "2026-10-25T22:32+00:00",
   "channels": 236,
   "with_listings_now_or_soon": 235,
   "with_a_day_of_listings_left": 235,
@@ -11,8 +11,8 @@
   "sources": {
     "https://vcicio.github.io/US-EPG/merged_epg.xml.gz": {
       "ok": true,
-      "last_modified": "Sun, 25 Oct 2026 17:27:52 GMT",
-      "listings_in_file": 413561
+      "last_modified": "Sun, 25 Oct 2026 21:54:56 GMT",
+      "listings_in_file": 389845
     },
     "https://epgshare01.online/epgshare01/epg_ripper_US2.xml.gz": {
       "ok": true,
@@ -47,7 +47,7 @@
     "https://i.mjh.nz/PlutoTV/us.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 8754
+      "listings_in_file": 8791
     },
     "https://epgshare01.online/epgshare01/epg_ripper_PLEX1.xml.gz": {
       "ok": true,
