@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-31T23:22+00:00",
-  "channels": 236,
-  "with_listings_now_or_soon": 236,
-  "with_a_day_of_listings_left": 235,
+  "generated_at": "2026-11-01T04:09+00:00",
+  "channels": 242,
+  "with_listings_now_or_soon": 242,
+  "with_a_day_of_listings_left": 241,
   "listings_end_for_most_channels": "2026-11-04T07:00+00:00",
   "carried_from_previous_guide": [],
   "blank_now": [],
@@ -45,7 +45,7 @@
     "https://i.mjh.nz/PlutoTV/us.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 8676
+      "listings_in_file": 8735
     },
     "https://epgshare01.online/epgshare01/epg_ripper_PLEX1.xml.gz": {
       "ok": true,
