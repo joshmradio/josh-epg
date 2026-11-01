@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-01T04:09+00:00",
+  "generated_at": "2026-11-01T05:59+00:00",
   "channels": 242,
   "with_listings_now_or_soon": 242,
   "with_a_day_of_listings_left": 241,
@@ -14,43 +14,43 @@
     },
     "https://epgshare01.online/epgshare01/epg_ripper_US2.xml.gz": {
       "ok": true,
-      "last_modified": "Sat, 31 Oct 2026 22:40:46 GMT",
+      "last_modified": "Sun, 01 Nov 2026 04:39:49 GMT",
       "listings_in_file": 81450
     },
     "https://epgshare01.online/epgshare01/epg_ripper_US_LOCALS1.xml.gz": {
       "ok": true,
-      "last_modified": "Sat, 31 Oct 2026 22:40:54 GMT",
+      "last_modified": "Sun, 01 Nov 2026 04:39:58 GMT",
       "listings_in_file": 555389
     },
     "https://epgshare01.online/epgshare01/epg_ripper_US_SPORTS1.xml.gz": {
       "ok": true,
-      "last_modified": "Sat, 31 Oct 2026 22:40:55 GMT",
+      "last_modified": "Sun, 01 Nov 2026 04:39:58 GMT",
       "listings_in_file": 109480
     },
     "https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz": {
       "ok": true,
-      "last_modified": "Sat, 31 Oct 2026 22:40:45 GMT",
+      "last_modified": "Sun, 01 Nov 2026 04:39:48 GMT",
       "listings_in_file": 42451
     },
     "https://epgshare01.online/epgshare01/epg_ripper_CA2.xml.gz": {
       "ok": true,
-      "last_modified": "Sat, 31 Oct 2026 22:40:28 GMT",
-      "listings_in_file": 67137
+      "last_modified": "Sun, 01 Nov 2026 04:39:33 GMT",
+      "listings_in_file": 67221
     },
     "https://epgshare01.online/epgshare01/epg_ripper_CH1.xml.gz": {
       "ok": true,
-      "last_modified": "Sat, 31 Oct 2026 22:40:29 GMT",
+      "last_modified": "Sun, 01 Nov 2026 04:39:34 GMT",
       "listings_in_file": 86646
     },
     "https://i.mjh.nz/PlutoTV/us.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 8735
+      "listings_in_file": 8746
     },
     "https://epgshare01.online/epgshare01/epg_ripper_PLEX1.xml.gz": {
       "ok": true,
-      "last_modified": "Sat, 31 Oct 2026 22:40:40 GMT",
-      "listings_in_file": 75468
+      "last_modified": "Sun, 01 Nov 2026 04:39:44 GMT",
+      "listings_in_file": 75537
     }
   }
 }
