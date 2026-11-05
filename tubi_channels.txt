@@ -1,0 +1,101 @@
+# Tubi live channels in the Josh IPTV playlist: content id, then name. One per line.
+400000304  UEFA.tv
+555121  FOX LOCAL Washington DC
+618763  Localish
+555129  theGrio
+400000012  ACCDN
+613758  beIN Sports XTRA
+400000119  Big 12 Studios
+400000285  Cowboy+ Sports
+613683  FOX Sports on Tubi
+557344  Fubo Sports Network
+400000083  HBO Boxing
+400000296  Jesser
+613765  MLB
+400000121  NASCAR
+613761  NFL Channel
+629323  NHRA TV
+613762  Real Madrid
+400000286  Scripps Sports Network
+613763  Stadium
+400000116  The NBA Channel
+400000294  Watch AEW
+400000000  Waypoint TV
+400000117  Def Jam
+400000056  Ebony TV by Lionsgate
+692087  FilmRise Black TV
+555382  FOX SOUL
+692262  Maverick Black Cinema
+400000247  TV One Stars & Stories
+653199  Baywatch
+684170  Grit Xtra
+400000104  Hersphere
+656574  The Carol Burnett Show
+658746  The Johnny Carson Show
+680705  Wanted: Dead or Alive
+682059  Anger Management
+682057  Are We There Yet
+400000169  Comedy Dynamics
+692114  LOL! Network
+400000301  MADtv
+656575  Mystery Science Theater 3000
+400000302  Retro Black Laughs
+400000103  The Conners
+724209  Dr. G: Medical Examiner
+400000179  Untold Stories of the E.R.
+670602  Fear Factor USA
+677790  The Biggest Loser
+650666  The Masked Singer
+670603  Wipeout Xtra
+677011  Gordon Ramsay
+715938  Sweet Escapes
+692090  FilmRise Horror
+692051  Horror by ALTER
+700407  Garden with Monty Don
+400000164  Hagerty
+400000073  In the Garage
+400000068  Travel + Adventure
+715945  Welcome Home
+715950  At the Movies
+673499  CINEVAULT
+673500  CINEVAULT: Classics
+673498  CINEVAULT: Westerns
+400000069  Classic Cinema
+684167  ION Mystery
+400000064  Silent Witness and New Tricks
+400000287  Jubilee
+400000048  MrBeast
+400000290  Mythical 24/7
+641290  REELZ Famous & Infamous
+400000155  The Breakfast Club on iHeartRadio
+641496  TMZ
+400000195  Vice
+400000099  Ax Men
+400000086  Dance Moms
+400000098  Deal Zone
+400000087  Duck Dynasty
+715948  Family Unscripted
+400000089  Ice Road Truckers
+715947  Love & Marriage
+400000292  Paternity Court by MGM
+692057  Alien Nation by DUST
+400000059  Classic Doctor Who
+715951  Ghosts are Real
+700406  HauntTV
+400000006  OuterSphere
+715939  Paws & Claws
+702891  The Jack Hanna Channel
+400000074  Chasing Criminals
+400000095  Crime Cults Killers
+400000090  Crime ThrillHer
+692086  FilmRise True Crime
+400000251  Law&Crime
+400000091  The FBI Files
+700412  True Crime Now
+400000011  TV One Crime & Justice
+400000093  World's Most Evil Killers
+400000070  Generation Drama
+684165  ION Plus
+571664  Bloomberg Originals
+555130  CBC News
+559144  Euronews

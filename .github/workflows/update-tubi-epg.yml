@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - "tubi_epg.py"
+      - "tubi_channels.txt"
       - ".github/workflows/update-tubi-epg.yml"
   schedule:
     - cron: "41 */4 * * *"     # every 4 hours

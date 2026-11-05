@@ -1,6 +1,8 @@
 """Builds tubi.xml.gz: an XMLTV guide for Tubi's free live channels, straight from Tubi.
 
 Channel IDs are "tubi.<Tubi content id>", matching the Tubi group in the Josh IPTV playlist.
+The channels are listed in tubi_channels.txt (Tubi's own channel list needs a signed-in browser, so it can't be
+read from here); any extra channels Tubi's list does return are added too.
 Runs in GitHub Actions every 4 hours (see .github/workflows/update-tubi-epg.yml). Standard library only.
 If Tubi can't be reached or the result looks wrong, the last good tubi.xml.gz is left in place.
 """
@@ -11,7 +13,7 @@ from xml.sax.saxutils import escape, quoteattr
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
 LIST = "https://tubitv.com/oz/epg"
 PROG = "https://epg-cdn.production-public.tubi.io/content/epg/programming?platform=web&device_id={dev}&lookahead=1&content_id={ids}"
-OUT, STATUS = "tubi.xml.gz", "tubi-guide-status.json"
+OUT, STATUS, IDS = "tubi.xml.gz", "tubi-guide-status.json", "tubi_channels.txt"
 
 def get(url, tries=3):
     for i in range(tries):
@@ -33,10 +35,12 @@ def first(images, *keys):
     return ""
 
 def main():
-    listing = get(LIST)
-    contents = listing.get("contents") or {}
-    ids = list(contents)
-    if len(ids) < 50: sys.exit(f"Only {len(ids)} channels came back from Tubi; keeping the last guide.")
+    ids = [l.split()[0] for l in open(IDS, encoding="utf-8") if l.strip() and not l.startswith("#")]
+    try:
+        ids += [i for i in (get(LIST, tries=1).get("contents") or {}) if i not in ids]
+    except Exception as e:
+        print(f"Tubi's channel list isn't available here ({e}); using {IDS}.")
+    if len(ids) < 20: sys.exit(f"Only {len(ids)} channels to look up; keeping the last guide.")
     dev, rows = str(uuid.uuid4()), []
     for i in range(0, len(ids), 40):
         rows += get(PROG.format(dev=dev, ids=",".join(ids[i:i + 40]))).get("rows") or []
