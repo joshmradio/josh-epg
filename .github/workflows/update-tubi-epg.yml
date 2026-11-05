@@ -1,0 +1,35 @@
+name: Update Tubi guide
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tubi_epg.py"
+      - ".github/workflows/update-tubi-epg.yml"
+  schedule:
+    - cron: "41 */4 * * *"     # every 4 hours
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-tubi-epg
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build the Tubi guide
+        run: python tubi_epg.py
+      - name: Commit guide if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tubi.xml.gz tubi-guide-status.json
+          if git diff --cached --quiet; then echo "Unchanged."; else git commit -m "Update Tubi guide"; git pull --rebase; git push; fi
