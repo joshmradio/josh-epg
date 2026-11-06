@@ -239,3 +239,4 @@ HBO.Zone.HD.us2
 NBC.Sports.Philadelphia.Plus.us2
 The.Movie.Channel.Extra.HD.us2
 TNT.Sports.Ultimate.HD.uk
+NHL-NashvillePredators.us

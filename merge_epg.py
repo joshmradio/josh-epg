@@ -28,8 +28,13 @@ SOURCES = [
     "https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_CA2.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_CH1.xml.gz",
-    "https://i.mjh.nz/PlutoTV/us.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_PLEX1.xml.gz",
+]
+# Free (FAST) channel guides: every channel in these files goes into the guide, so a Pluto TV or Plex channel added
+# to the playlist later has listings without editing target_ids.txt. The playlist's tvg-ids are these files' ids.
+FAST_SOURCES = [
+    "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/us.xml.gz",
+    "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/us.xml.gz",
 ]
 # Sources the guide can't do without: if one of these still has no listings after every retry, nothing is published.
 REQUIRED = {
@@ -43,6 +48,15 @@ CHANNEL_ID_ALIASES = {
     "AMCThrillers.us@SD": "plex.tv.AMC.Thrillers.plex",
     "Sky.ScFi/HorHD.uk": "Sky.Sci-Fi.HD.uk",
 }
+# Channels no guide lists (Music Choice): the guide shows the channel's name as a 3-hour "show", so the row isn't
+# blank. The ids are the playlist's tvg-ids.
+FILLER_IDS = ["MC: 70s", "MC: 80s", "MC: 90s", "MC: Adult Alternative", "MC: Alternative", "MC: Classic Rock",
+              "MC: Dance/EDM", "MC: Hip-Hop and R&B", "MC: Hip-Hop Classics", "MC: Hit List", "MC: Love Songs",
+              "MC: Pop Energy", "MC: Pop Hits", "MC: R&B Classics", "MC: R&B Soul", "MC: Rap", "MC: Rock",
+              "MC: Rock Hits", "MC: Soft Rock", "MC: Solid Gold Oldies", "MC: Tailgate Party", "MC: Teen Beats",
+              "MC: Throwback Jamz", "MC: Y2K"]
+FILLER_BLOCK_H = 3
+FILLER_DAYS = 3
 TRIES = 4
 RETRY_WAIT_S = 120
 KEEP_ENDED_H = 6          # listings carried over from the previous guide: keep those that ended less than this ago
@@ -167,10 +181,15 @@ def main():
     want = set(target_ids) | set(CHANNEL_ID_ALIASES.values())
 
     channels, programmes, acc_candidates, broken, source_info = {}, {}, [], [], {}
-    for url in SOURCES:
+    fast_ids = set()
+    for url in SOURCES + FAST_SOURCES:
+        fast = url in FAST_SOURCES
         log(f"Downloading {url}")
         try:
-            chans, progs, acc, total = fetch_source(url, want)
+            chans, progs, acc, total = fetch_source(url, _AnyId() if fast else want)
+            if fast:
+                fast_ids |= set(chans)
+                acc = []
         except Exception as e:
             log(f"WARNING {e}")
             broken.append(url)
@@ -212,6 +231,8 @@ def main():
 
     # Carry over: a channel left without anything current keeps the previous guide's still-useful listings
     prev_chans, prev_progs = load_previous()
+    # FAST channels: this run's, plus the ones published last time (so a FAST source that fails keeps its listings)
+    target_ids |= fast_ids | (set(prev_chans) - want)
     carried = []
     for cid in sorted(target_ids):
         if coverage(programmes, [cid], now):
@@ -224,6 +245,25 @@ def main():
             carried.append(cid)
     if carried:
         log(f"CARRIED {len(carried)} channels from the previous guide: {', '.join(carried[:20])}{' …' if len(carried) > 20 else ''}")
+
+    # Filler listings for channels no guide covers
+    def xt(t):
+        return datetime.fromtimestamp(t, timezone.utc).strftime("%Y%m%d%H%M%S +0000")
+    block = FILLER_BLOCK_H * 3600
+    first = int(now // block) * block - block
+    for cid in FILLER_IDS:
+        name = cid.replace("MC: ", "Music Choice ")
+        ch = ET.Element("channel", {"id": cid}); ET.SubElement(ch, "display-name").text = name
+        channels[cid] = ch
+        lst = []
+        for t in range(first, int(now) + FILLER_DAYS * 86400, block):
+            p = ET.Element("programme", {"channel": cid, "start": xt(t), "stop": xt(t + block)})
+            ET.SubElement(p, "title").text = name
+            ET.SubElement(p, "desc").text = "Non-stop music videos."
+            ET.SubElement(p, "category").text = "Music"
+            lst.append(p)
+        programmes[cid] = lst
+        target_ids.add(cid)
 
     found = sorted(cid for cid in target_ids if cid in channels)
     for cid in sorted(target_ids - set(found)):
