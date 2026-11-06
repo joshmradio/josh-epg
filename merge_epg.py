@@ -48,6 +48,15 @@ CHANNEL_ID_ALIASES = {
     "AMCThrillers.us@SD": "plex.tv.AMC.Thrillers.plex",
     "Sky.ScFi/HorHD.uk": "Sky.Sci-Fi.HD.uk",
 }
+# Channels no guide lists (Music Choice): the guide shows the channel's name as a 3-hour "show", so the row isn't
+# blank. The ids are the playlist's tvg-ids.
+FILLER_IDS = ["MC: 70s", "MC: 80s", "MC: 90s", "MC: Adult Alternative", "MC: Alternative", "MC: Classic Rock",
+              "MC: Dance/EDM", "MC: Hip-Hop and R&B", "MC: Hip-Hop Classics", "MC: Hit List", "MC: Love Songs",
+              "MC: Pop Energy", "MC: Pop Hits", "MC: R&B Classics", "MC: R&B Soul", "MC: Rap", "MC: Rock",
+              "MC: Rock Hits", "MC: Soft Rock", "MC: Solid Gold Oldies", "MC: Tailgate Party", "MC: Teen Beats",
+              "MC: Throwback Jamz", "MC: Y2K"]
+FILLER_BLOCK_H = 3
+FILLER_DAYS = 3
 TRIES = 4
 RETRY_WAIT_S = 120
 KEEP_ENDED_H = 6          # listings carried over from the previous guide: keep those that ended less than this ago
@@ -236,6 +245,25 @@ def main():
             carried.append(cid)
     if carried:
         log(f"CARRIED {len(carried)} channels from the previous guide: {', '.join(carried[:20])}{' …' if len(carried) > 20 else ''}")
+
+    # Filler listings for channels no guide covers
+    def xt(t):
+        return datetime.fromtimestamp(t, timezone.utc).strftime("%Y%m%d%H%M%S +0000")
+    block = FILLER_BLOCK_H * 3600
+    first = int(now // block) * block - block
+    for cid in FILLER_IDS:
+        name = cid.replace("MC: ", "Music Choice ")
+        ch = ET.Element("channel", {"id": cid}); ET.SubElement(ch, "display-name").text = name
+        channels[cid] = ch
+        lst = []
+        for t in range(first, int(now) + FILLER_DAYS * 86400, block):
+            p = ET.Element("programme", {"channel": cid, "start": xt(t), "stop": xt(t + block)})
+            ET.SubElement(p, "title").text = name
+            ET.SubElement(p, "desc").text = "Non-stop music videos."
+            ET.SubElement(p, "category").text = "Music"
+            lst.append(p)
+        programmes[cid] = lst
+        target_ids.add(cid)
 
     found = sorted(cid for cid in target_ids if cid in channels)
     for cid in sorted(target_ids - set(found)):
