@@ -28,8 +28,13 @@ SOURCES = [
     "https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_CA2.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_CH1.xml.gz",
-    "https://i.mjh.nz/PlutoTV/us.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_PLEX1.xml.gz",
+]
+# Free (FAST) channel guides: every channel in these files goes into the guide, so a Pluto TV or Plex channel added
+# to the playlist later has listings without editing target_ids.txt. The playlist's tvg-ids are these files' ids.
+FAST_SOURCES = [
+    "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/us.xml.gz",
+    "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/us.xml.gz",
 ]
 # Sources the guide can't do without: if one of these still has no listings after every retry, nothing is published.
 REQUIRED = {
@@ -167,10 +172,15 @@ def main():
     want = set(target_ids) | set(CHANNEL_ID_ALIASES.values())
 
     channels, programmes, acc_candidates, broken, source_info = {}, {}, [], [], {}
-    for url in SOURCES:
+    fast_ids = set()
+    for url in SOURCES + FAST_SOURCES:
+        fast = url in FAST_SOURCES
         log(f"Downloading {url}")
         try:
-            chans, progs, acc, total = fetch_source(url, want)
+            chans, progs, acc, total = fetch_source(url, _AnyId() if fast else want)
+            if fast:
+                fast_ids |= set(chans)
+                acc = []
         except Exception as e:
             log(f"WARNING {e}")
             broken.append(url)
@@ -212,6 +222,8 @@ def main():
 
     # Carry over: a channel left without anything current keeps the previous guide's still-useful listings
     prev_chans, prev_progs = load_previous()
+    # FAST channels: this run's, plus the ones published last time (so a FAST source that fails keeps its listings)
+    target_ids |= fast_ids | (set(prev_chans) - want)
     carried = []
     for cid in sorted(target_ids):
         if coverage(programmes, [cid], now):

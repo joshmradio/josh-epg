@@ -3,12 +3,12 @@
 A single combined XMLTV EPG for TiviMax.
 
 It merges:
-- EPGShare US2
-- EPGShare US_LOCALS1
-- EPGShare US_SPORTS1
-- EPGShare UK1
+- vcicio US-EPG
+- EPGShare US2, US_LOCALS1, US_SPORTS1, UK1, CA2, CH1, PLEX1 (the channels in `target_ids.txt`)
+- Pluto TV and Plex free channels (every channel in i.mjh.nz's US Pluto TV and Plex guides, so new FAST
+  channels in the playlist get listings without editing anything)
 
-The GitHub Action runs twice daily and only replaces the published guide after the new guide downloads, parses, and passes validation. If a build fails, the last known-good `guide.xml.gz` remains in the repository.
+The GitHub Action runs every 2 hours and only replaces the published guide after the new guide downloads, parses, and passes validation. If a build fails, the last known-good `guide.xml.gz` remains in the repository.
 
 ## TiviMax EPG URL
 

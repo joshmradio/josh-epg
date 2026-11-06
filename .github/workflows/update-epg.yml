@@ -8,7 +8,7 @@ on:
       - "target_ids.txt"
       - ".github/workflows/update-epg.yml"
   schedule:
-    - cron: "17 */4 * * *"     # every 4 hours, so a source that comes back is picked up quickly
+    - cron: "17 */2 * * *"     # every 2 hours (Pluto TV only publishes about a day ahead)
 
 permissions:
   contents: write
