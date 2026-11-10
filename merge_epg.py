@@ -56,6 +56,9 @@ FILLER_IDS = ["MC: 70s", "MC: 80s", "MC: 90s", "MC: Adult Alternative", "MC: Alt
               "MC: Rock Hits", "MC: Soft Rock", "MC: Solid Gold Oldies", "MC: Tailgate Party", "MC: Teen Beats",
               "MC: Throwback Jamz", "MC: Y2K"]
 FILLER_BLOCK_H = 3
+# Some IPTV apps stop reading a guide after roughly 40 MB, so the playlist's own channels go first in the file and
+# the free (FAST) channels after them, with their listings kept to the next 36 hours and no cast lists.
+FAST_AHEAD_H = 36
 FILLER_DAYS = 3
 TRIES = 4
 RETRY_WAIT_S = 120
@@ -265,7 +268,7 @@ def main():
         programmes[cid] = lst
         target_ids.add(cid)
 
-    found = sorted(cid for cid in target_ids if cid in channels)
+    found = sorted((cid for cid in target_ids if cid in channels), key=lambda c: (c not in want, c))
     for cid in sorted(target_ids - set(found)):
         log(f"MISSING_ID {cid}")
 
@@ -288,7 +291,12 @@ def main():
         out.append(channels[cid])
     seen, count = set(), 0
     for cid in found:
+        fast = cid in fast_ids
         for p in programmes.get(cid, ()):
+            if fast and (xmltv_time(p.get("start")) or 0) > now + FAST_AHEAD_H * 3600:
+                continue
+            for cr in p.findall("credits"):
+                p.remove(cr)
             key = (p.get("start"), p.get("stop"), p.findtext("title"))
             if (cid, key) in seen:
                 continue
