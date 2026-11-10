@@ -1,11 +1,12 @@
 {
-  "generated_at": "2026-11-10T02:43+00:00",
+  "generated_at": "2026-11-10T12:36+00:00",
   "channels": 1425,
-  "with_listings_now_or_soon": 1425,
-  "with_a_day_of_listings_left": 779,
-  "listings_end_for_most_channels": "2026-11-12T00:00+00:00",
+  "with_listings_now_or_soon": 1423,
+  "with_a_day_of_listings_left": 457,
+  "listings_end_for_most_channels": "2026-11-11T02:31+00:00",
   "carried_from_previous_guide": [
     "634f24cf3ce5fa0007c68f39",
+    "Fox.Sports.4K.us2",
     "MC: 70s",
     "MC: 80s",
     "MC: 90s",
@@ -31,57 +32,60 @@
     "MC: Throwback Jamz",
     "MC: Y2K"
   ],
-  "blank_now": [],
+  "blank_now": [
+    "Fox.Sports.4K.us2",
+    "634f24cf3ce5fa0007c68f39"
+  ],
   "sources": {
     "https://vcicio.github.io/US-EPG/merged_epg.xml.gz": {
       "ok": true,
-      "last_modified": "Mon, 09 Nov 2026 23:21:56 GMT",
-      "listings_in_file": 401313
+      "last_modified": "Tue, 10 Nov 2026 08:50:33 GMT",
+      "listings_in_file": 504953
     },
     "https://epgshare01.online/epgshare01/epg_ripper_US2.xml.gz": {
       "ok": true,
-      "last_modified": "Mon, 09 Nov 2026 23:38:31 GMT",
+      "last_modified": "Tue, 10 Nov 2026 11:38:55 GMT",
       "listings_in_file": 83000
     },
     "https://epgshare01.online/epgshare01/epg_ripper_US_LOCALS1.xml.gz": {
       "ok": true,
-      "last_modified": "Mon, 09 Nov 2026 23:38:38 GMT",
+      "last_modified": "Tue, 10 Nov 2026 11:39:02 GMT",
       "listings_in_file": 583518
     },
     "https://epgshare01.online/epgshare01/epg_ripper_US_SPORTS1.xml.gz": {
       "ok": true,
-      "last_modified": "Mon, 09 Nov 2026 23:38:38 GMT",
-      "listings_in_file": 104466
+      "last_modified": "Tue, 10 Nov 2026 11:39:02 GMT",
+      "listings_in_file": 103793
     },
     "https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz": {
       "ok": true,
-      "last_modified": "Mon, 09 Nov 2026 23:38:30 GMT",
+      "last_modified": "Tue, 10 Nov 2026 11:38:54 GMT",
       "listings_in_file": 43219
     },
     "https://epgshare01.online/epgshare01/epg_ripper_CA2.xml.gz": {
       "ok": true,
-      "last_modified": "Mon, 09 Nov 2026 23:38:17 GMT",
-      "listings_in_file": 69646
+      "last_modified": "Tue, 10 Nov 2026 11:38:40 GMT",
+      "listings_in_file": 70008
     },
     "https://epgshare01.online/epgshare01/epg_ripper_CH1.xml.gz": {
       "ok": true,
-      "last_modified": "Mon, 09 Nov 2026 23:38:17 GMT",
+      "last_modified": "Tue, 10 Nov 2026 11:38:41 GMT",
       "listings_in_file": 86589
     },
     "https://epgshare01.online/epgshare01/epg_ripper_PLEX1.xml.gz": {
       "ok": true,
-      "last_modified": "Mon, 09 Nov 2026 23:38:26 GMT",
-      "listings_in_file": 81030
+      "last_modified": "Tue, 10 Nov 2026 11:38:50 GMT",
+      "listings_in_file": 81093
     },
     "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/us.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 9382
+      "listings_in_file": 9341
     },
     "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/us.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 43121
+      "listings_in_file": 31100
     }
   }
 }
