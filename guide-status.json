@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-11-12T00:39+00:00",
-  "channels": 1424,
-  "with_listings_now_or_soon": 1424,
-  "with_a_day_of_listings_left": 784,
-  "listings_end_for_most_channels": "2026-11-13T01:29+00:00",
+  "generated_at": "2026-11-12T01:22+00:00",
+  "channels": 1429,
+  "with_listings_now_or_soon": 1429,
+  "with_a_day_of_listings_left": 789,
+  "listings_end_for_most_channels": "2026-11-14T00:16+00:00",
   "carried_from_previous_guide": [
     "MC: 70s",
     "MC: 80s",
@@ -75,12 +75,12 @@
     "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/us.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 9428
+      "listings_in_file": 9427
     },
     "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/us.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 53804
+      "listings_in_file": 47154
     }
   }
 }
