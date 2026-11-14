@@ -54,8 +54,15 @@ FILLER_IDS = ["MC: 70s", "MC: 80s", "MC: 90s", "MC: Adult Alternative", "MC: Alt
               "MC: Dance/EDM", "MC: Hip-Hop and R&B", "MC: Hip-Hop Classics", "MC: Hit List", "MC: Love Songs",
               "MC: Pop Energy", "MC: Pop Hits", "MC: R&B Classics", "MC: R&B Soul", "MC: Rap", "MC: Rock",
               "MC: Rock Hits", "MC: Soft Rock", "MC: Solid Gold Oldies", "MC: Tailgate Party", "MC: Teen Beats",
-              "MC: Throwback Jamz", "MC: Y2K"]
+              "MC: Throwback Jamz", "MC: Today's Hits", "MC: Y2K"]
 FILLER_BLOCK_H = 3
+# West feeds no guide lists: the guide gives them the East feed's listings, this many hours later, under a new id.
+# New id (the playlist's tvg-id) -> (East feed's id, hours later).
+SHIFTED_IDS = {
+    "Cinemax.Action.West.us2": ("Cinemax.Action.us2", 3),
+    "Cinemax.Hits.West.us2": ("Cinemax.Hits.us2", 3),
+    "HBO.Hits.West.us2": ("HBO.Hits.us2", 3),
+}
 # Some IPTV apps stop reading a guide after roughly 40 MB, so the playlist's own channels go first in the file and
 # the free (FAST) channels after them, with their listings kept to the next 36 hours and no cast lists.
 FAST_AHEAD_H = 36
@@ -83,6 +90,11 @@ def xmltv_time(s):
         return t.replace(tzinfo=timezone.utc).timestamp()
     except Exception:
         return None
+
+
+def xmltv_stamp(t):
+    """UTC timestamp -> '20261024163000 +0000'."""
+    return datetime.fromtimestamp(t, timezone.utc).strftime("%Y%m%d%H%M%S +0000")
 
 
 def download(url):
@@ -231,6 +243,28 @@ def main():
         log(f"EPG_ALIAS ACC.Network.us -> {acc_source} ({len(programmes[acc_source])} listings)")
     else:
         log(f"WARNING ACC Network has no listings upstream; candidates={acc_candidates}")
+
+    # West feeds: the East feed's listings, shifted later
+    for west_id, (east_id, hours) in SHIFTED_IDS.items():
+        if east_id not in channels or not programmes.get(east_id):
+            log(f"WARNING shifted source missing: {east_id} (for {west_id})")
+            continue
+        ch = copy.deepcopy(channels[east_id]); ch.set("id", west_id)
+        for dn in ch.findall("display-name"):
+            dn.text = f"{dn.text or ''} West".strip()
+        shifted = []
+        for p in programmes[east_id]:
+            start, stop = xmltv_time(p.get("start")), xmltv_time(p.get("stop"))
+            if start is None or stop is None:
+                continue
+            q = copy.deepcopy(p)
+            q.set("channel", west_id)
+            q.set("start", xmltv_stamp(start + hours * 3600)); q.set("stop", xmltv_stamp(stop + hours * 3600))
+            shifted.append(q)
+        channels[west_id] = ch
+        programmes[west_id] = shifted
+        target_ids.add(west_id)
+        log(f"EPG_SHIFT {west_id} = {east_id} +{hours}h ({len(shifted)} listings)")
 
     # Carry over: a channel left without anything current keeps the previous guide's still-useful listings
     prev_chans, prev_progs = load_previous()

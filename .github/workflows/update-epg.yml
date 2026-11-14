@@ -3,6 +3,7 @@ name: Update combined EPG
 on:
   workflow_dispatch:
   push:
+    branches: [main]           # not on pull-request branches: a guide committed there conflicts with main's
     paths:
       - "merge_epg.py"
       - "target_ids.txt"
