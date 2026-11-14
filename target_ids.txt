@@ -242,3 +242,14 @@ TNT.Sports.Ultimate.HD.uk
 NHL-NashvillePredators.us
 TBS.HD.(Pacific).us2
 TNT.HD.(Pacific).us2
+# --- MCCOY PLAYLIST: Columbus, OH locals and sports networks ---
+WCMH-DT.us_locals1
+WSYX-DT.us_locals1
+WBNS-DT.us_locals1
+WTTE-DT.us_locals1
+WWHO-DT.us_locals1
+Big.Ten.Network.HD.us2
+CBS.Sports.Network.HD.us2
+ESPNU.HD.us2
+SEC.Network.HD.us2
+Yes.Network.us2
