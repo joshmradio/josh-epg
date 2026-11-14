@@ -1,10 +1,11 @@
 {
-  "generated_at": "2026-11-14T23:03+00:00",
-  "channels": 1442,
-  "with_listings_now_or_soon": 1441,
-  "with_a_day_of_listings_left": 984,
-  "listings_end_for_most_channels": "2026-11-16T03:00+00:00",
+  "generated_at": "2026-11-14T20:41+00:00",
+  "channels": 1429,
+  "with_listings_now_or_soon": 1427,
+  "with_a_day_of_listings_left": 970,
+  "listings_end_for_most_channels": "2026-11-16T00:29+00:00",
   "carried_from_previous_guide": [
+    "6a03782f2c1c785c1161756c",
     "MC: 70s",
     "MC: 80s",
     "MC: 90s",
@@ -31,7 +32,8 @@
     "MC: Y2K"
   ],
   "blank_now": [
-    "Fox.Sports.4K.us2"
+    "Fox.Sports.4K.us2",
+    "6a03782f2c1c785c1161756c"
   ],
   "sources": {
     "https://vcicio.github.io/US-EPG/merged_epg.xml.gz": {
@@ -77,12 +79,12 @@
     "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/us.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 9259
+      "listings_in_file": 9224
     },
     "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/us.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 53298
+      "listings_in_file": 48499
     }
   }
 }
