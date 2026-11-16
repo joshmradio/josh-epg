@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-11-16T02:12:36.146835+00:00",
-  "source_updated_at": "2026-11-16T02:12:07.757Z",
-  "channels": 2181,
-  "channels_with_current_or_future_listings": 1654,
-  "programmes": 183016,
+  "generated_at": "2026-11-16T09:50:14.847001+00:00",
+  "source_updated_at": "2026-11-16T09:49:38.092Z",
+  "channels": 2033,
+  "channels_with_current_or_future_listings": 1813,
+  "programmes": 177889,
   "latest_programme_end": "2026-11-24T04:45:00+00:00",
   "local_streams_with_current_or_future_listings": 959,
   "note": "Only available source listings are included. Blank channels have no reliable listings."
