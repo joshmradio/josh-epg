@@ -253,3 +253,6 @@ CBS.Sports.Network.HD.us2
 ESPNU.HD.us2
 SEC.Network.HD.us2
 Yes.Network.us2
+# --- Free channels from Roku's guide (i.mjh.nz Roku/all) ---
+aad0f36f2f811fc2f0491d3a7b51285e
+05a58f8f0d1b55999a9ab0e9caae8a47
