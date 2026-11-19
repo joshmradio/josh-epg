@@ -302,7 +302,9 @@ def main():
         programmes[cid] = lst
         target_ids.add(cid)
 
-    found = sorted((cid for cid in target_ids if cid in channels), key=lambda c: (c not in want, c))
+    # The playlist's own channels first (including the shifted West feeds and Music Choice fillers, which are not in
+    # target_ids.txt), the free (FAST) channels last: apps that stop reading after ~40 MB then only lose FAST listings.
+    found = sorted((cid for cid in target_ids if cid in channels), key=lambda c: (c in fast_ids and c not in want, c))
     for cid in sorted(target_ids - set(found)):
         log(f"MISSING_ID {cid}")
 
