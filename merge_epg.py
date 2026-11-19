@@ -29,6 +29,8 @@ SOURCES = [
     "https://epgshare01.online/epgshare01/epg_ripper_CA2.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_CH1.xml.gz",
     "https://epgshare01.online/epgshare01/epg_ripper_PLEX1.xml.gz",
+    # Roku's free channels: only the ids in target_ids.txt are kept (ESPN8 The Ocho, Saved by the Bell)
+    "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Roku/all.xml.gz",
 ]
 # Free (FAST) channel guides: every channel in these files goes into the guide, so a Pluto TV or Plex channel added
 # to the playlist later has listings without editing target_ids.txt. The playlist's tvg-ids are these files' ids.
