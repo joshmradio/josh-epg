@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-19T02:43+00:00",
-  "channels": 1443,
-  "with_listings_now_or_soon": 1443,
-  "with_a_day_of_listings_left": 985,
+  "generated_at": "2026-11-19T02:48+00:00",
+  "channels": 1445,
+  "with_listings_now_or_soon": 1445,
+  "with_a_day_of_listings_left": 987,
   "listings_end_for_most_channels": "2026-11-22T00:12+00:00",
   "carried_from_previous_guide": [
     "6a1610bebdf296985fd95603-6a8744fdb1b3d334c851bbc5",
@@ -73,6 +73,11 @@
       "ok": true,
       "last_modified": "Wed, 18 Nov 2026 23:38:34 GMT",
       "listings_in_file": 76107
+    },
+    "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Roku/all.xml.gz": {
+      "ok": true,
+      "last_modified": "",
+      "listings_in_file": 66313
     },
     "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/us.xml.gz": {
       "ok": true,
