@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-11-22T17:49+00:00",
+  "generated_at": "2026-11-22T23:35+00:00",
   "channels": 1445,
   "with_listings_now_or_soon": 1444,
-  "with_a_day_of_listings_left": 986,
-  "listings_end_for_most_channels": "2026-11-25T00:12+00:00",
+  "with_a_day_of_listings_left": 984,
+  "listings_end_for_most_channels": "2026-11-24T00:18+00:00",
   "carried_from_previous_guide": [
     "MC: 70s",
     "MC: 80s",
@@ -37,8 +37,8 @@
   "sources": {
     "https://vcicio.github.io/US-EPG/merged_epg.xml.gz": {
       "ok": true,
-      "last_modified": "Sun, 22 Nov 2026 08:17:52 GMT",
-      "listings_in_file": 499541
+      "last_modified": "Sun, 22 Nov 2026 20:54:38 GMT",
+      "listings_in_file": 406768
     },
     "https://epgshare01.online/epgshare01/epg_ripper_US2.xml.gz": {
       "ok": true,
@@ -78,17 +78,17 @@
     "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Roku/all.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 67527
+      "listings_in_file": 67342
     },
     "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/us.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 9273
+      "listings_in_file": 9320
     },
     "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/us.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 60653
+      "listings_in_file": 46285
     }
   }
 }
