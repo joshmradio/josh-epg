@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-26T21:28+00:00",
+  "generated_at": "2026-11-27T04:14+00:00",
   "channels": 1446,
-  "with_listings_now_or_soon": 1445,
-  "with_a_day_of_listings_left": 968,
+  "with_listings_now_or_soon": 1427,
+  "with_a_day_of_listings_left": 288,
   "listings_end_for_most_channels": "2026-11-27T23:00+00:00",
   "carried_from_previous_guide": [
     "6a1610bebdf296985fd95603-5eea605474085f0040ddc767",
@@ -734,63 +734,80 @@
     "MC: Y2K"
   ],
   "blank_now": [
-    "Fox.Sports.4K.us2"
+    "6a1610bebdf296985fd95603-5fc705daa2236e002d69f108",
+    "6a1610bebdf296985fd95603-6018913ea15130002b284191",
+    "6a1610bebdf296985fd95603-61aaa17a784a2161d3caf801",
+    "6a1610bebdf296985fd95603-62ee72cc271f393d2d9f7098",
+    "6a1610bebdf296985fd95603-62efba6588a16bb7d6b6fb58",
+    "6a1610bebdf296985fd95603-630fa9e577ec3866def38fa2",
+    "6a1610bebdf296985fd95603-6329474265c8569187176338",
+    "6a1610bebdf296985fd95603-646c0dfbfb58444e4e1e262d",
+    "6a1610bebdf296985fd95603-64a355697d24564fba37bab8",
+    "6a1610bebdf296985fd95603-65a1d3996475bf522f9256e3",
+    "6a1610bebdf296985fd95603-65b1568052aa31b8f64da064",
+    "6a1610bebdf296985fd95603-666e192cd91d13cb4c8cbb6b",
+    "6a1610bebdf296985fd95603-666e1af3d91d13cb4c8cbb6d",
+    "6a1610bebdf296985fd95603-666e2178d91d13cb4c8cbb75",
+    "6a1610bebdf296985fd95603-666e236ace73ed6023b55a17",
+    "6a1610bebdf296985fd95603-68800f0c4033a6a442ad923d",
+    "6a1610bebdf296985fd95603-6889479e67ddc0ef2cdbf501",
+    "6a1610bebdf296985fd95603-68894c4890f994b93a68c1b0",
+    "6a1610bebdf296985fd95603-6a16eb29c699bd41112bb703"
   ],
   "sources": {
     "https://vcicio.github.io/US-EPG/merged_epg.xml.gz": {
       "ok": true,
-      "last_modified": "Thu, 26 Nov 2026 09:15:36 GMT",
-      "listings_in_file": 451846
+      "last_modified": "Thu, 26 Nov 2026 22:51:41 GMT",
+      "listings_in_file": 498554
     },
     "https://epgshare01.online/epgshare01/epg_ripper_US2.xml.gz": {
       "ok": true,
-      "last_modified": "Thu, 26 Nov 2026 17:39:12 GMT",
-      "listings_in_file": 82475
+      "last_modified": "Thu, 26 Nov 2026 23:38:29 GMT",
+      "listings_in_file": 81892
     },
     "https://epgshare01.online/epgshare01/epg_ripper_US_LOCALS1.xml.gz": {
       "ok": true,
-      "last_modified": "Thu, 26 Nov 2026 17:39:19 GMT",
+      "last_modified": "Thu, 26 Nov 2026 23:38:36 GMT",
       "listings_in_file": 522996
     },
     "https://epgshare01.online/epgshare01/epg_ripper_US_SPORTS1.xml.gz": {
       "ok": true,
-      "last_modified": "Thu, 26 Nov 2026 17:39:19 GMT",
+      "last_modified": "Thu, 26 Nov 2026 23:38:36 GMT",
       "listings_in_file": 104876
     },
     "https://epgshare01.online/epgshare01/epg_ripper_UK1.xml.gz": {
       "ok": true,
-      "last_modified": "Thu, 26 Nov 2026 17:39:11 GMT",
-      "listings_in_file": 42974
+      "last_modified": "Thu, 26 Nov 2026 23:38:29 GMT",
+      "listings_in_file": 42701
     },
     "https://epgshare01.online/epgshare01/epg_ripper_CA2.xml.gz": {
       "ok": true,
-      "last_modified": "Thu, 26 Nov 2026 17:38:56 GMT",
+      "last_modified": "Thu, 26 Nov 2026 23:38:15 GMT",
       "listings_in_file": 67314
     },
     "https://epgshare01.online/epgshare01/epg_ripper_CH1.xml.gz": {
       "ok": true,
-      "last_modified": "Thu, 26 Nov 2026 17:38:57 GMT",
-      "listings_in_file": 88133
+      "last_modified": "Thu, 26 Nov 2026 23:38:16 GMT",
+      "listings_in_file": 85924
     },
     "https://epgshare01.online/epgshare01/epg_ripper_PLEX1.xml.gz": {
       "ok": true,
-      "last_modified": "Thu, 26 Nov 2026 17:39:07 GMT",
+      "last_modified": "Thu, 26 Nov 2026 23:38:24 GMT",
       "listings_in_file": 75884
     },
     "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Roku/all.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 67963
+      "listings_in_file": 67693
     },
     "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/us.xml.gz": {
       "ok": true,
       "last_modified": "",
-      "listings_in_file": 9398
+      "listings_in_file": 9403
     },
     "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/us.xml.gz": {
-      "ok": true,
-      "last_modified": "",
-      "listings_in_file": 20648
+      "ok": false,
+      "error": "https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/Plex/us.xml.gz: download too small (132 bytes)"
     }
   }
 }
