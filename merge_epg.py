@@ -58,6 +58,50 @@ FILLER_IDS = ["MC: 70s", "MC: 80s", "MC: 90s", "MC: Adult Alternative", "MC: Alt
               "MC: Rock Hits", "MC: Soft Rock", "MC: Solid Gold Oldies", "MC: Tailgate Party", "MC: Teen Beats",
               "MC: Throwback Jamz", "MC: Today's Hits", "MC: Y2K"]
 FILLER_BLOCK_H = 3
+# The 24/7 channels no guide lists: the guide shows the channel's own name in 3-hour blocks. The ids are the
+# playlist's tvg-ids, which for these channels are the channel names themselves.
+FILLER_247 = [
+    'AMERICAN PIE 24/7',
+    'ARCHER 24/7',
+    'AUSTIN POWERS MOVIES 24/7',
+    'AVENGERS MOVIES 24/7',
+    'BACK TO THE FUTURE MOVIES 24/7',
+    'BETTER CALL SAUL 24/7',
+    "BOB'S BURGERS 24/7",
+    'BOJACK HORSEMAN 24/7',
+    'BREAKING BAD 24/7',
+    "CHAPPELLE'S SHOW 24/7",
+    'CURB YOUR ENTHUSIASM 24/7',
+    'DREW CAREY SHOW 24/7',
+    'FRESH PRINCE OF BEL AIR 24/7',
+    'FRIENDS 24/7',
+    'FUTURAMA 24/7',
+    'GOLDEN GIRLS 24/7',
+    'IN LIVING COLOR 24/7',
+    "IT'S ALWAYS SUNNY IN PHILADELPHIA 24/7",
+    'KING OF THE HILL 24/7',
+    'LETTERKENNY 24/7',
+    'LOST 24/7',
+    'M*A*S*H* 24/7',
+    'MASTER CHEF 24/7',
+    'PARKS & RECREATION 24/7',
+    'RICK & MORTY 24/7',
+    'SEINFELD 24/7',
+    'SNL 24/7',
+    'SOUTH PARK 24/7',
+    'SPIDER-MAN MOVIES 24/7',
+    'STAR WARS 24/7',
+    'MARVEL CINEMATIC UNIVERSE 24/7',
+    'SUPERMAN MOVIES 24/7',
+    'TERMINATOR MOVIES 24/7',
+    'THE OFFICE 24/7',
+    'THE SIMPSONS 24/7',
+    'THE SOPRANOS 24/7',
+    'TOY STORY MOVIES 24/7',
+    'WHOSE LINE IS IT ANYWAY 24/7',
+    'AMERICAN DAD 24/7',
+    'ANIMANIACS 24/7',
+]
 # West feeds no guide lists: the guide gives them the East feed's listings, this many hours later, under a new id.
 # New id (the playlist's tvg-id) -> (East feed's id, hours later).
 SHIFTED_IDS = {
@@ -290,16 +334,19 @@ def main():
         return datetime.fromtimestamp(t, timezone.utc).strftime("%Y%m%d%H%M%S +0000")
     block = FILLER_BLOCK_H * 3600
     first = int(now // block) * block - block
-    for cid in FILLER_IDS:
-        name = cid.replace("MC: ", "Music Choice ")
+    fillers = [(cid, cid.replace("MC: ", "Music Choice "), "Non-stop music videos.", "Music") for cid in FILLER_IDS]
+    fillers += [(cid, cid, "Around-the-clock movies." if "MOVIES" in cid or "STAR WARS" in cid or "AMERICAN PIE" in cid
+                 or "MARVEL" in cid else "Around-the-clock episodes.", "Movie" if "MOVIES" in cid else "Series")
+                for cid in FILLER_247]
+    for cid, name, desc, cat in fillers:
         ch = ET.Element("channel", {"id": cid}); ET.SubElement(ch, "display-name").text = name
         channels[cid] = ch
         lst = []
         for t in range(first, int(now) + FILLER_DAYS * 86400, block):
             p = ET.Element("programme", {"channel": cid, "start": xt(t), "stop": xt(t + block)})
             ET.SubElement(p, "title").text = name
-            ET.SubElement(p, "desc").text = "Non-stop music videos."
-            ET.SubElement(p, "category").text = "Music"
+            ET.SubElement(p, "desc").text = desc
+            ET.SubElement(p, "category").text = cat
             lst.append(p)
         programmes[cid] = lst
         target_ids.add(cid)

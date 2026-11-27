@@ -256,3 +256,27 @@ Yes.Network.us2
 # --- Free channels from Roku's guide (i.mjh.nz Roku/all) ---
 aad0f36f2f811fc2f0491d3a7b51285e
 05a58f8f0d1b55999a9ab0e9caae8a47
+# --- UK channels (EPGShare UK1), TSN (CA2), HDNet Movies (US2) ---
+Sky.Arts.HD.uk
+Sky.Atlantic.HD.uk
+Sky.Comedy.HD.uk
+Sky.Crime.HD.uk
+Sky.News.HD.uk
+Sky.Witness.HD.uk
+ComedyCentHD.uk
+ComedyXtra.uk
+U.and.Dave.HD.uk
+ITV1.HD.uk
+ITV2.HD.uk
+ITV3.HD.uk
+ITV4.HD.uk
+BBC.One.Lon.HD.uk
+BBC.Two.HD.uk
+BBC.Four.HD.uk
+BBC.NEWS.HD.uk
+TSN.1.ca2
+TSN.2.ca2
+TSN.3.ca2
+TSN.4.ca2
+TSN.5.ca2
+HDNet.Movies.us2
