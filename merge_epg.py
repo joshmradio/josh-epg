@@ -113,10 +113,75 @@ SHIFTED_IDS = {
 # the free (FAST) channels after them, with their listings kept to the next 36 hours and no cast lists.
 FAST_AHEAD_H = 36
 FILLER_DAYS = 3
+# NHL Center Ice game channels ("NHL GAME 01" … "NHL GAME 16" in the playlist; the ids are the channel names). The
+# provider puts each night's games on them in start-time order, so the guide does the same from the NHL's schedule:
+# the 1st game of the night on NHL GAME 01, the 2nd on 02, and so on. Hours with no game say so.
+NHL_GAME_IDS = [f"NHL GAME {i:02d}" for i in range(1, 17)]
+NHL_SCHEDULE = "https://api-web.nhle.com/v1/schedule/now"
+NHL_GAME_H = 3
 TRIES = 4
 RETRY_WAIT_S = 120
 KEEP_ENDED_H = 6          # listings carried over from the previous guide: keep those that ended less than this ago
 MIN_COVERAGE_RATIO = 0.85  # the new guide must cover at least this share of what the published one covers now
+
+
+def nhl_games():
+    """This week's NHL games from the league's public schedule, by day: [(date, [game, …]), …]. [] if it can't be read."""
+    try:
+        req = urllib.request.Request(NHL_SCHEDULE, headers={"User-Agent": "josh-epg/1.0", "Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            data = json.load(r)
+        return [(d.get("date", ""), d.get("games") or []) for d in data.get("gameWeek") or []]
+    except Exception as e:
+        log(f"NHL schedule unavailable: {e}")
+        return []
+
+
+def nhl_listings(now, xt):
+    """{channel id: [programme, …]} for the NHL GAME channels: each night's games in start-time order, then filler."""
+    def team(t):
+        return f"{(t.get('placeName') or {}).get('default', '')} {(t.get('commonName') or {}).get('default', '')}".strip() or t.get("abbrev", "")
+    def short(t):
+        return (t.get("commonName") or {}).get("default") or t.get("abbrev", "")
+    games = {cid: [] for cid in NHL_GAME_IDS}
+    for day, lst in nhl_games():
+        lst = sorted((g for g in lst if g.get("startTimeUTC")), key=lambda g: (g["startTimeUTC"], g.get("id", 0)))
+        for k, g in enumerate(lst[:len(NHL_GAME_IDS)]):
+            try:
+                start = int(datetime.strptime(g["startTimeUTC"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp())
+            except ValueError:
+                continue
+            away, home = g.get("awayTeam") or {}, g.get("homeTeam") or {}
+            tv = ", ".join(b.get("network", "") for b in g.get("tvBroadcasts") or [] if b.get("network"))
+            venue = (g.get("venue") or {}).get("default", "")
+            desc = f"{team(away)} at {team(home)}" + (f" · {venue}" if venue else "") + (f" · TV: {tv}" if tv else "") + \
+                f" · Game {k + 1} of {len(lst)} on {day}."
+            games[NHL_GAME_IDS[k]].append((start, start + NHL_GAME_H * 3600, f"{short(away)} at {short(home)}", desc))
+    out = {}
+    block = FILLER_BLOCK_H * 3600
+    first, end = int(now // block) * block - block, int(now) + FILLER_DAYS * 86400
+    for cid in NHL_GAME_IDS:
+        lst, t = [], first
+        for start, stop, title, desc in sorted(games[cid]) + [(end, end, None, None)]:
+            if stop <= t:
+                continue
+            while t < start:                                   # no game: fill the gap in blocks
+                e = min(start, (t // block + 1) * block)
+                p = ET.Element("programme", {"channel": cid, "start": xt(t), "stop": xt(e)})
+                ET.SubElement(p, "title").text = "NHL Center Ice"
+                ET.SubElement(p, "desc").text = "No game on this channel right now."
+                ET.SubElement(p, "category").text = "Sports"
+                lst.append(p); t = e
+            if title is None:
+                break
+            p = ET.Element("programme", {"channel": cid, "start": xt(max(start, t)), "stop": xt(stop)})
+            ET.SubElement(p, "title").text = title
+            ET.SubElement(p, "desc").text = desc
+            ET.SubElement(p, "category").text = "Sports"
+            ET.SubElement(p, "category").text = "Ice Hockey"
+            lst.append(p); t = stop
+        out[cid] = lst
+    return out
 
 
 def log(*a):
@@ -348,6 +413,11 @@ def main():
             ET.SubElement(p, "desc").text = desc
             ET.SubElement(p, "category").text = cat
             lst.append(p)
+        programmes[cid] = lst
+        target_ids.add(cid)
+    for cid, lst in nhl_listings(now, xt).items():
+        ch = ET.Element("channel", {"id": cid}); ET.SubElement(ch, "display-name").text = cid
+        channels[cid] = ch
         programmes[cid] = lst
         target_ids.add(cid)
 
